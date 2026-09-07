@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>GauRakshak - Splash Opening Animation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Manrope', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              dark: '#143823',
+              green: '#235d3a',
+              light: '#ecf7ea',
+              cream: '#fbfaf7',
+              accent: '#34d399',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Prevent text selection and bouncing */
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #143823;
+      font-family: 'Manrope', sans-serif;
+      overflow: hidden;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Screen Stage Transitions */
+    /* Total sequence: 3 seconds */
+    /* 0.0s - 0.8s: Stage 1 (Cow Grazing) */
+    /* 0.8s - 1.5s: Stage 2 (Farmer Milking) */
+    /* 1.5s - 2.0s: Stage 3 (Milk Drop Falls) */
+    /* 2.0s - 2.5s: Stage 4 (Milk Drop Expands / Screen Wash) */
+    /* 2.5s - 3.0s: Stage 5 (GauRakshak App Reveal) */
+
+    @keyframes fadeOutStage1 {
+      0%, 75% { opacity: 1; transform: scale(1); }
+      95%, 100% { opacity: 0; transform: scale(1.04); pointer-events: none; }
+    }
+
+    @keyframes fadeInOutStage2 {
+      0%, 25% { opacity: 0; transform: scale(0.98); }
+      30%, 55% { opacity: 1; transform: scale(1); }
+      65%, 100% { opacity: 0; transform: scale(1.02); pointer-events: none; }
+    }
+
+    @keyframes milkDropFalling {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -40px) scale(0.6);
+      }
+      55% {
+        opacity: 1;
+        transform: translate(-50%, 0px) scale(1);
+      }
+      70% {
+        opacity: 1;
+        transform: translate(-50%, 80px) scale(1.15, 0.9);
+      }
+      75% {
+        opacity: 1;
+        transform: translate(-50%, 90px) scale(25);
+      }
+      85%, 100% {
+        opacity: 1;
+        transform: translate(-50%, 90px) scale(80);
+      }
+    }
+
+    @keyframes appRevealLogo {
+      0%, 78% {
+        opacity: 0;
+        transform: translateY(18px) scale(0.92);
+      }
+      88%, 100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes appBgReveal {
+      0%, 74% {
+        opacity: 0;
+      }
+      82%, 100% {
+        opacity: 1;
+      }
+    }
+
+    /* Natural gentle grazing motion */
+    @keyframes gentleChew {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(1.2deg) translateY(-2px); }
+    }
+
+    /* Milking hand movement */
+    @keyframes milkStream {
+      0%, 100% { stroke-dashoffset: 0; opacity: 0.9; }
+      50% { stroke-dashoffset: 12; opacity: 0.4; }
+    }
+
+    .animate-stage-1 {
+      animation: fadeOutStage1 3.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    .animate-stage-2 {
+      animation: fadeInOutStage2 3.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    .animate-milk-drop {
+      animation: milkDropFalling 3.2s cubic-bezier(0.45, 0, 0.25, 1) forwards;
+    }
+
+    .animate-app-content {
+      animation: appRevealLogo 3.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .animate-app-bg {
+      animation: appBgReveal 3.2s ease-out forwards;
+    }
+
+    /* Subtle pasture mist / sun rays */
+    @keyframes sunRayPulse {
+      0%, 100% { opacity: 0.18; }
+      50% { opacity: 0.32; }
+    }
+    .sun-ray {
+      animation: sunRayPulse 2s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="bg-[#143823] text-neutral-900 flex justify-center items-center min-h-screen">
+
+  <!-- Mobile Device Frame Container (Portrait 390px x 844px) -->
+  <div class="relative w-full max-w-[390px] h-[844px] bg-[#143823] overflow-hidden shadow-2xl flex flex-col justify-between">
+
+    <!-- ==========================================================
+         STAGE 1 (0.0s - 0.8s): INDIAN DAIRY FARM SCENE / COW GRAZING
+         Warm rural morning pasture with healthy Gir/Sahiwal cow
+         ========================================================== -->
+    <div class="absolute inset-0 z-10 animate-stage-1 pointer-events-none flex flex-col justify-between">
+      <!-- Sky & Golden Morning Pasture Horizon -->
+      <div class="absolute inset-0 bg-gradient-to-b from-[#1c4d30] via-[#215435] to-[#2c6942]"></div>
+
+      <!-- Atmospheric Rural Elements: Warm Morning Glow -->
+      <div class="absolute -top-16 -left-16 w-80 h-80 bg-[#e3b04b]/20 rounded-full blur-3xl pointer-events-none sun-ray"></div>
+      <div class="absolute top-1/4 right-0 w-64 h-64 bg-[#77c48f]/20 rounded-full blur-2xl pointer-events-none"></div>
+
+      <!-- Rural Scene Illustration (SVG) -->
+      <div class="relative z-10 w-full h-full flex flex-col items-center justify-center px-4">
+        
+        <!-- Peaceful Grazing Gir Cow Illustration -->
+        <div class="relative w-full max-w-[330px] h-[340px] flex items-center justify-center" style="animation: gentleChew 2s ease-in-out infinite;">
+          <svg viewBox="0 0 360 360" class="w-full h-full filter drop-shadow-xl" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="warmSun" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#fff5db" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="#e3b04b" stop-opacity="0.05"/>
+              </linearGradient>
+              <linearGradient id="cowCoat" x1="20%" y1="10%" x2="80%" y2="90%">
+                <stop offset="0%" stop-color="#b66635"/>
+                <stop offset="50%" stop-color="#9a4d22"/>
+                <stop offset="100%" stop-color="#763513"/>
+              </linearGradient>
+              <linearGradient id="pastureGrass" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#498f5e"/>
+                <stop offset="100%" stop-color="#1f5734"/>
+              </linearGradient>
+            </defs>
+
+            <!-- Distant Village Acacia Trees & Gentle Hill -->
+            <path d="M0 240 Q180 205 360 235 L360 360 L0 360 Z" fill="#2d6842" opacity="0.85"/>
+            <circle cx="280" cy="180" r="32" fill="#245936" opacity="0.6"/>
+            <circle cx="310" cy="175" r="28" fill="#2a633d" opacity="0.6"/>
+            <rect x="290" y="195" width="6" height="30" fill="#183b24" opacity="0.7"/>
+
+            <circle cx="70" cy="190" r="24" fill="#255a37" opacity="0.5"/>
+            <rect x="68" y="205" width="5" height="22" fill="#183b24" opacity="0.6"/>
+
+            <!-- Warm Horizon Ambient Circle -->
+            <circle cx="180" cy="170" r="130" fill="url(#warmSun)"/>
+
+            <!-- Rolling Green Forefront Grass Mound -->
+            <path d="M-20 255 Q170 230 380 255 L380 380 L-20 380 Z" fill="url(#pastureGrass)"/>
+
+            <!-- Natural Cow Silhouette & Characteristics (Gir Cow with Distinctive Hump & Long Curved Ears) -->
+            <!-- Cow Body -->
+            <path d="M110 240 C95 235 90 200 100 180 C110 160 135 155 160 155 C185 155 205 140 220 148 C235 155 245 170 248 190 C252 215 240 245 220 245 Z" fill="url(#cowCoat)"/>
+            
+            <!-- Gir Prominent Hump -->
+            <ellipse cx="148" cy="150" rx="22" ry="16" fill="#8d421a"/>
+
+            <!-- Cow Hind Legs & Front Legs Grazing Downward -->
+            <path d="M108 230 L104 285 Q104 290 110 290 Q116 290 116 285 L120 232" fill="#7d3714"/>
+            <path d="M125 230 L126 280 Q126 286 132 286 Q138 286 137 280 L135 230" fill="#8e3f17"/>
+            <path d="M210 230 L208 282 Q208 288 214 288 Q220 288 220 282 L222 230" fill="#7a3411"/>
+            <path d="M228 230 L230 284 Q230 290 236 290 Q242 290 240 284 L236 230" fill="#8e3f17"/>
+
+            <!-- Cow Neck & Head Lowered Grazing -->
+            <path d="M235 175 C248 185 260 205 265 225 C268 238 260 246 250 248 C240 250 232 242 230 235 C226 215 222 195 218 180 Z" fill="#9d4e24"/>
+            
+            <!-- Cow Head Lowered to Grass -->
+            <ellipse cx="260" cy="240" rx="16" ry="14" fill="#a85527"/>
+            <!-- Muzzle softly touching green grass -->
+            <ellipse cx="270" cy="248" rx="8" ry="7" fill="#4d2412"/>
+            <!-- Gentle Gir Ear Hanging Down -->
+            <path d="M250 230 Q252 255 246 265 C242 272 238 268 240 256 Q244 240 248 230 Z" fill="#7e3715"/>
+            <!-- Traditional Ear Tag (Yellow Ear-Tag COW-024) -->
+            <rect x="245" y="244" width="7" height="9" rx="1.5" fill="#facc15"/>
+
+            <!-- White mottled patches typical of Gir breed -->
+            <ellipse cx="170" cy="190" rx="14" ry="10" fill="#eddcd0" opacity="0.75" transform="rotate(-15 170 190)"/>
+            <ellipse cx="140" cy="205" rx="18" ry="8" fill="#eddcd0" opacity="0.7" transform="rotate(20 140 205)"/>
+            <ellipse cx="205" cy="180" rx="9" ry="6" fill="#eddcd0" opacity="0.8"/>
+
+            <!-- Cow Tail -->
+            <path d="M98 190 Q88 215 92 245 C93 252 90 255 87 250 Q85 235 94 190" fill="#692d10"/>
+
+            <!-- Grass Blades in Foreground -->
+            <path d="M260 255 L264 242 M266 257 L272 240 M274 256 L278 244 M250 258 L254 245" stroke="#77c48f" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==========================================================
+         STAGE 2 (0.8s - 1.5s): FARMER MILKING SCENE
+         Farmer seated beside cow, focused rural milking action
+         ========================================================== -->
+    <div class="absolute inset-0 z-20 animate-stage-2 pointer-events-none flex flex-col justify-between">
+      <div class="absolute inset-0 bg-gradient-to-b from-[#163f27] via-[#1f5033] to-[#2b6440]"></div>
+
+      <!-- Ambient Glow Behind Milking Focus -->
+      <div class="absolute top-1/3 left-1/2 -translate-x-1/2 w-72 h-72 bg-[#5cb377]/15 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- Farmer Milking Illustration -->
+      <div class="relative z-10 w-full h-full flex flex-col items-center justify-center px-4">
+        
+        <div class="relative w-full max-w-[340px] h-[360px] flex items-center justify-center">
+          <svg viewBox="0 0 360 360" class="w-full h-full filter drop-shadow-2xl" xmlns="http://www.w3.org/2000/svg">
+            <!-- Warm Wooden Barn / Shed Floor & Backdrop -->
+            <path d="M0 260 L360 250 L360 360 L0 360 Z" fill="#255236"/>
+            
+            <!-- Traditional Milking Stool (Three-legged Peedha) -->
+            <rect x="75" y="272" width="48" height="10" rx="3" fill="#8c532b"/>
+            <rect x="80" y="282" width="6" height="30" fill="#6a3d1d"/>
+            <rect x="110" y="282" width="6" height="30" fill="#6a3d1d"/>
+
+            <!-- Cow Udder & Rear Torso (Clean, Healthy, Natural) -->
+            <path d="M165 140 C190 140 240 155 260 180 C275 200 270 245 250 255 C220 258 175 250 160 230 Z" fill="#9a4d22"/>
+            <!-- Cow Hind Leg Backing -->
+            <path d="M245 210 L250 290 Q252 296 260 296 Q268 296 266 290 L260 210" fill="#763513"/>
+
+            <!-- Healthy Udder Contour -->
+            <path d="M175 220 Q195 245 215 222 Q225 210 220 195 L170 195 Z" fill="#e8a892"/>
+            <!-- Teats -->
+            <path d="M185 238 L184 250 Q184 253 187 253 Q190 253 190 250 L191 238" fill="#d48a73"/>
+            <path d="M205 238 L204 250 Q204 253 207 253 Q210 253 210 250 L211 238" fill="#d48a73"/>
+
+            <!-- Traditional Indian Brass/Steel Milk Bucket (Dolchi / Bartan) -->
+            <path d="M175 270 L180 320 Q198 326 216 320 L221 270 Q198 266 175 270 Z" fill="#d1d5db" stroke="#9ca3af" stroke-width="1.5"/>
+            <!-- Bucket Interior Glow (Fresh Pure Milk Froth) -->
+            <ellipse cx="198" cy="272" rx="21" ry="5" fill="#ffffff"/>
+
+            <!-- Gentle Fresh Milking Stream -->
+            <line x1="187" y1="253" x2="194" y2="272" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.95"/>
+            <line x1="207" y1="253" x2="202" y2="272" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
+
+            <!-- Indian Dairy Farmer Seated (Kneeling/Stool Posture) -->
+            <!-- Farmer Kurta & Legs -->
+            <path d="M70 240 C75 215 95 205 118 215 C130 222 145 240 148 265 L140 288 L95 285 Z" fill="#f8fafc"/>
+            <path d="M90 265 L125 270 L140 310 Q140 316 132 316 L92 295 Z" fill="#cbd5e1"/>
+            
+            <!-- Farmer Hands Tenderly Performing Milking Motion -->
+            <!-- Right Arm Reaching to Teat -->
+            <path d="M130 228 C145 232 165 240 184 246" stroke="#b46d43" stroke-width="12" stroke-linecap="round"/>
+            <path d="M135 238 C150 244 175 248 204 246" stroke="#a25e36" stroke-width="10" stroke-linecap="round"/>
+
+            <!-- Farmer Head & Traditional Headcloth (Safa / Pagdi) -->
+            <!-- Farmer Torso Leaning Forward with Care -->
+            <circle cx="102" cy="188" r="16" fill="#b46d43"/>
+            <!-- Warm Ochre / Cream Pagdi -->
+            <path d="M90 184 C90 168 104 162 118 168 C124 172 124 186 114 190 C106 193 92 192 90 184 Z" fill="#d97706"/>
+            <path d="M88 182 Q108 170 125 180" stroke="#b45309" stroke-width="3" fill="none"/>
+          </svg>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==========================================================
+         STAGE 3 & 4 (1.5s - 2.5s): THE PURE MILK DROP TRANSITION
+         Falls directly from bucket/milking stream, then smoothly expands to wash screen
+         ========================================================== -->
+    <div class="absolute top-[48%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
+      <!-- Expanding Single Milk Drop Element -->
+      <div class="animate-milk-drop flex items-center justify-center">
+        <!-- SVG Milk Drop with crisp tear-drop curve -->
+        <svg width="48" height="58" viewBox="0 0 48 58" fill="none" xmlns="http://www.w3.org/2000/svg" class="filter drop-shadow-xl">
+          <path d="M24 0C24 0 48 28.5 48 40.5C48 50.165 37.2548 58 24 58C10.7452 58 0 50.165 0 40.5C0 28.5 24 0 24 0Z" fill="#235d3a"/>
+          <!-- Inner Cream highlight -->
+          <path d="M14 36C14 29 20 20 22 17C22 22 18 29 18 36C18 38 16 38 14 36Z" fill="#3cd180" opacity="0.6"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Smooth Background Transition Overlay into Dark GauRakshak Forest Green -->
+    <div class="absolute inset-0 z-40 bg-[#143823] animate-app-bg pointer-events-none"></div>
+
+    <!-- ==========================================================
+         STAGE 5 (2.5s - 3.0s): GAURAKSHAK APP REVEAL
+         Polished Mobile Splash Finale:
+         - GauRakshak Brand Emblem
+         - "GauRakshak" Title
+         - Pure, Short Farmer Tagline
+         - STRICTLY NO badges, NO sync indicators, NO dev labels, NO buttons
+         ========================================================== -->
+    <div class="absolute inset-0 z-50 animate-app-content flex flex-col items-center justify-center px-8 text-center">
+
+      <!-- Subtle background radial ambient warmth -->
+      <div class="absolute w-72 h-72 bg-[#235d3a]/60 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- GauRakshak Official Brand Emblem (Using https://lh3.googleusercontent.com/aida/AEtjO1XQPPX-RjIdAUZMyD1U0XZcO8azvdz5oS537KH0IVxpghP4cwNpISHVfEJBe6lGIVk5w9H6zXUAXKNeH6CoPq9X9zjSQtkTt6A57hIGzzfkNSBkqN95hUDGLOYigmyO4iDAERxoUgaxEV3yale_TRKjJTBiMIe26zNFp0jsdF627Hr8MkUhPSNMd7y45E25dI6HFQXzBn9dsbEqKjQDiI4_tk0fMaiu-APBWRWp6SeZl_xRgJZHus1dIQs) -->
+      <div class="relative w-28 h-28 mb-6 rounded-3xl overflow-hidden shadow-2xl ring-2 ring-emerald-500/20 bg-[#1e4d30] flex items-center justify-center">
+        <img 
+          src="https://lh3.googleusercontent.com/aida/AEtjO1XQPPX-RjIdAUZMyD1U0XZcO8azvdz5oS537KH0IVxpghP4cwNpISHVfEJBe6lGIVk5w9H6zXUAXKNeH6CoPq9X9zjSQtkTt6A57hIGzzfkNSBkqN95hUDGLOYigmyO4iDAERxoUgaxEV3yale_TRKjJTBiMIe26zNFp0jsdF627Hr8MkUhPSNMd7y45E25dI6HFQXzBn9dsbEqKjQDiI4_tk0fMaiu-APBWRWp6SeZl_xRgJZHus1dIQs" 
+          alt="GauRakshak Logo" 
+          class="w-full h-full object-cover p-2"
+        />
+      </div>
+
+      <!-- App Title -->
+      <h1 class="relative text-3xl font-extrabold text-white tracking-tight leading-none mb-2">
+        GauRakshak
+      </h1>
+
+      <!-- Tagline strictly farmer-focused and clean -->
+      <p class="relative text-sm font-medium text-emerald-100/80 tracking-wide max-w-[240px]">
+        Smart Dairy Assistant &amp; Mastitis Early Warning
+      </p>
+
+      <!-- Minimal clean loading progress pulse for seamless Flutter transition -->
+      <div class="absolute bottom-16 flex items-center justify-center space-x-1.5 opacity-60">
+        <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div>
+        <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" style="animation-delay: 0.2s"></div>
+        <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" style="animation-delay: 0.4s"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

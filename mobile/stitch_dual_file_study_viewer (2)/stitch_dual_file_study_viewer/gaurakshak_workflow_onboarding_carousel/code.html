@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GauRakshak - Workflow Onboarding</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Manrope', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#ecf7ea',
+              100: '#d7eed4',
+              200: '#b2dfad',
+              500: '#235d3a',
+              600: '#1c4c2f',
+              700: '#153a24',
+              800: '#0e2718',
+              900: '#08170e',
+              accent: '#10b981',
+              amber: '#f59e0b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Manrope', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .glass-pill {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    .slide-item {
+      scroll-snap-align: start;
+    }
+  </style>
+</head>
+<body class="bg-[#0b1d13] text-white flex justify-center min-h-screen items-center p-0 m-0">
+
+  <!-- Mobile Screen Frame (390 x 844 standard mobile layout) -->
+  <div class="relative w-full max-w-[390px] h-[844px] max-h-screen bg-gradient-to-b from-[#113121] via-[#0d271a] to-[#07160e] flex flex-col justify-between overflow-hidden shadow-2xl rounded-[40px] border border-emerald-900/40">
+    
+    <!-- Background Ambient Glow Accents -->
+    <div class="absolute top-[-100px] left-[-80px] w-72 h-72 bg-emerald-500/20 rounded-full blur-[100px] pointer-events-none"></div>
+    <div class="absolute bottom-[160px] right-[-60px] w-64 h-64 bg-[#235d3a]/30 rounded-full blur-[90px] pointer-events-none"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-emerald-600/10 rounded-full blur-[110px] pointer-events-none"></div>
+
+    <!-- Top Status / Header Bar -->
+    <header class="relative z-20 pt-8 px-6 pb-2 flex items-center justify-between">
+      <!-- Brand Logo / Badge -->
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-brand-600 p-0.5 shadow-lg shadow-emerald-950/40 flex items-center justify-center">
+          <img src="https://lh3.googleusercontent.com/aida/AEtjO1XQPPX-RjIdAUZMyD1U0XZcO8azvdz5oS537KH0IVxpghP4cwNpISHVfEJBe6lGIVk5w9H6zXUAXKNeH6CoPq9X9zjSQtkTt6A57hIGzzfkNSBkqN95hUDGLOYigmyO4iDAERxoUgaxEV3yale_TRKjJTBiMIe26zNFp0jsdF627Hr8MkUhPSNMd7y45E25dI6HFQXzBn9dsbEqKjQDiI4_tk0fMaiu-APBWRWp6SeZl_xRgJZHus1dIQs" alt="GauRakshak Logo" class="w-full h-full object-cover rounded-[10px]" />
+        </div>
+        <div>
+          <span class="text-sm font-bold tracking-tight text-white block leading-none">GauRakshak</span>
+          <span class="text-[10px] font-medium tracking-wide uppercase text-emerald-300/80">Smart Dairy Assistant</span>
+        </div>
+      </div>
+
+      <!-- Skip Button -->
+      <button id="skipBtn" onclick="goToSlide(2)" class="text-xs font-semibold px-3 py-1.5 rounded-full text-emerald-200/90 hover:text-white glass-pill transition-all active:scale-95">
+        Skip Tour
+      </button>
+    </header>
+
+    <!-- Carousel Container -->
+    <main class="relative z-10 flex-1 flex flex-col justify-center overflow-hidden">
+      <!-- Horizontal Scroll Track -->
+      <div id="carouselTrack" class="flex-1 flex overflow-x-auto snap-x snap-mandatory hide-scrollbar scroll-smooth">
+
+        <!-- Slide 1: Cow Identification -->
+        <div class="slide-item min-w-full flex flex-col justify-center px-6 py-2">
+          <!-- Illustrated Card -->
+          <div class="glass-card rounded-3xl p-5 shadow-2xl relative overflow-hidden border border-emerald-400/20 mb-6 group">
+            <div class="absolute top-3 right-3 glass-pill px-2.5 py-1 rounded-full flex items-center gap-1.5 text-[11px] text-emerald-300 font-medium">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Step 01
+            </div>
+
+            <!-- Card Visual Representation: Cow RFID Scan -->
+            <div class="relative w-full h-56 rounded-2xl overflow-hidden bg-gradient-to-b from-black/40 to-black/70 flex items-center justify-center border border-white/10">
+              <img src="https://lh3.googleusercontent.com/aida/AEtjO1Ux3LiujZhdkfXkn7QCGZs9XnvWmgA1SMjiqvmASnPUF4urvUNHjLQdzPEi1Sr1clCW0z62_bJwsb3EPolAm2W1p6c3xIc-R1SfquYf4EO5ykwUW0U-6CKIGbmZnTUY4zeIZ0LG10mBJElDjU7VyOFx3_RZ-LcBu_jiZneXhUn-hpSj-S3H_BWBGh9XFc2fntvbMW11-k0XK3f9dMmBD4DLriSDEsdvdqCxdduTx1Ntf_Rg-yToH0016PY" alt="Cow Gauri" class="w-full h-full object-cover object-center opacity-85" />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20"></div>
+
+              <!-- Scanning Reticle Graphic Overlay -->
+              <div class="absolute inset-6 border-2 border-dashed border-emerald-400/80 rounded-2xl pointer-events-none flex flex-col justify-between p-2 animate-[pulse_3s_ease-in-out_infinite]">
+                <div class="flex justify-between items-start">
+                  <div class="w-4 h-4 border-t-2 border-l-2 border-emerald-300"></div>
+                  <div class="w-4 h-4 border-t-2 border-r-2 border-emerald-300"></div>
+                </div>
+                <!-- RFID Detected Badge -->
+                <div class="self-center glass-pill px-3 py-1.5 rounded-full border border-emerald-400/50 flex items-center gap-2 shadow-lg">
+                  <span class="material-symbols-outlined text-emerald-300 text-sm">qr_code_scanner</span>
+                  <span class="text-xs font-bold text-emerald-200 tracking-wide">COW-024 • GAURI</span>
+                </div>
+                <div class="flex justify-between items-end">
+                  <div class="w-4 h-4 border-b-2 border-l-2 border-emerald-300"></div>
+                  <div class="w-4 h-4 border-b-2 border-r-2 border-emerald-300"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Text Content -->
+            <div class="mt-5 text-left">
+              <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-300 uppercase tracking-wider mb-1">
+                <span class="material-symbols-outlined text-xs">tag</span>
+                Instant Cow Verification
+              </div>
+              <h2 class="text-2xl font-extrabold text-white tracking-tight leading-snug">
+                1. Scan RFID or Ear-Tag
+              </h2>
+              <p class="text-sm text-emerald-100/75 mt-2 leading-relaxed font-normal">
+                Point your phone at the cow's tag. GauRakshak instantly pulls up Gauri’s digital profile and associates the correct milking station.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide 2: Data Flow / IoT Sensor Pairing -->
+        <div class="slide-item min-w-full flex flex-col justify-center px-6 py-2">
+          <!-- Illustrated Card -->
+          <div class="glass-card rounded-3xl p-5 shadow-2xl relative overflow-hidden border border-emerald-400/20 mb-6">
+            <div class="absolute top-3 right-3 glass-pill px-2.5 py-1 rounded-full flex items-center gap-1.5 text-[11px] text-emerald-300 font-medium">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Step 02
+            </div>
+
+            <!-- Card Visual Representation: Sensor Teat Cup -> Phone Flow -->
+            <div class="relative w-full h-56 rounded-2xl overflow-hidden bg-gradient-to-b from-[#133c26] to-[#0d2719] flex flex-col items-center justify-center p-4 border border-white/10">
+              
+              <!-- Sensor Node Graphic Illustration -->
+              <div class="w-full flex items-center justify-around relative">
+                <!-- Milking Sensor Unit -->
+                <div class="flex flex-col items-center gap-1.5 z-10">
+                  <div class="w-14 h-14 rounded-2xl bg-emerald-950/80 border border-emerald-400/40 flex items-center justify-center shadow-lg relative">
+                    <span class="material-symbols-outlined text-emerald-300 text-2xl">sensors</span>
+                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full border-2 border-[#133c26]"></span>
+                  </div>
+                  <span class="text-[10px] font-bold text-emerald-200">Sensor #04</span>
+                </div>
+
+                <!-- Animated Data Wave Link -->
+                <div class="flex-1 flex flex-col items-center justify-center px-2 z-10">
+                  <div class="w-full flex items-center justify-center gap-1.5 text-emerald-300">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    <div class="h-0.5 flex-1 bg-gradient-to-r from-emerald-400/80 via-emerald-300 to-emerald-400/80 dashed border-t border-dashed border-emerald-300/80"></div>
+                    <span class="material-symbols-outlined text-sm animate-pulse">wifi_tethering</span>
+                  </div>
+                  <span class="text-[9px] uppercase tracking-wider text-emerald-200/70 font-semibold mt-1">Telemetry Sync</span>
+                </div>
+
+                <!-- Phone Receiver Graphic -->
+                <div class="flex flex-col items-center gap-1.5 z-10">
+                  <div class="w-14 h-14 rounded-2xl bg-brand-800/90 border border-emerald-300/50 flex items-center justify-center shadow-xl">
+                    <span class="material-symbols-outlined text-white text-2xl">smartphone</span>
+                  </div>
+                  <span class="text-[10px] font-bold text-white">GauRakshak</span>
+                </div>
+              </div>
+
+              <!-- Live Yield Harvest Pill -->
+              <div class="mt-4 w-full bg-black/40 backdrop-blur-md rounded-xl p-2.5 border border-emerald-500/20 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-300">
+                    <span class="material-symbols-outlined text-sm">water_drop</span>
+                  </div>
+                  <div>
+                    <div class="text-[10px] text-emerald-300/75">Yield Harvested</div>
+                    <div class="text-xs font-bold text-white">6.5 Litres • Active</div>
+                  </div>
+                </div>
+                <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-md">Pocket Phone Ready</span>
+              </div>
+
+            </div>
+
+            <!-- Card Text Content -->
+            <div class="mt-5 text-left">
+              <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-300 uppercase tracking-wider mb-1">
+                <span class="material-symbols-outlined text-xs">network_check</span>
+                Hands-Free Milking
+              </div>
+              <h2 class="text-2xl font-extrabold text-white tracking-tight leading-snug">
+                2. Auto-Stream & Pocket Phone
+              </h2>
+              <p class="text-sm text-emerald-100/75 mt-2 leading-relaxed font-normal">
+                Once paired, sensor nodes stream milk flow, volume, and electrical conductivity directly to GauRakshak. You don't need to look at the screen while milking.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide 3: AI Health Risk Report -->
+        <div class="slide-item min-w-full flex flex-col justify-center px-6 py-2">
+          <!-- Illustrated Card -->
+          <div class="glass-card rounded-3xl p-5 shadow-2xl relative overflow-hidden border border-emerald-400/20 mb-6">
+            <div class="absolute top-3 right-3 glass-pill px-2.5 py-1 rounded-full flex items-center gap-1.5 text-[11px] text-emerald-300 font-medium">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Step 03
+            </div>
+
+            <!-- Card Visual Representation: Mastitis Early-Warning Card -->
+            <div class="relative w-full h-56 rounded-2xl overflow-hidden bg-gradient-to-b from-[#1c3628] to-[#12241b] flex flex-col justify-between p-4 border border-white/10">
+              
+              <!-- Result Header -->
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-amber-300">
+                    <span class="material-symbols-outlined text-base">shield_with_heart</span>
+                  </div>
+                  <div>
+                    <span class="text-xs font-bold text-white block">Mastitis Risk Estimate</span>
+                    <span class="text-[10px] text-emerald-200/70">Session #0418 • Analyzed</span>
+                  </div>
+                </div>
+                <div class="bg-rose-500/20 border border-rose-400/40 text-rose-300 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                  High Risk
+                </div>
+              </div>
+
+              <!-- Mini Yield Trajectory Chart -->
+              <div class="bg-black/30 rounded-xl p-2.5 border border-white/5 my-1">
+                <div class="flex justify-between items-center text-[10px] mb-1.5">
+                  <span class="text-white/80 font-medium">5-Day Yield Trend</span>
+                  <span class="text-rose-400 font-bold">10.5L → 8.7L (Drop)</span>
+                </div>
+                <div class="flex items-end justify-between h-10 gap-1.5 pt-1">
+                  <div class="flex-1 bg-emerald-500/60 rounded-t h-[90%]"></div>
+                  <div class="flex-1 bg-emerald-500/60 rounded-t h-[88%]"></div>
+                  <div class="flex-1 bg-emerald-500/60 rounded-t h-[85%]"></div>
+                  <div class="flex-1 bg-amber-500/80 rounded-t h-[65%]"></div>
+                  <div class="flex-1 bg-rose-500 rounded-t h-[52%]"></div>
+                </div>
+                <div class="flex justify-between text-[8px] text-white/50 mt-1">
+                  <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span class="text-rose-300 font-bold">Today</span>
+                </div>
+              </div>
+
+              <!-- Recommendation Footer -->
+              <div class="flex items-center gap-2 text-[10px] text-emerald-100/80 bg-emerald-500/10 rounded-lg px-2.5 py-1.5 border border-emerald-500/20">
+                <span class="material-symbols-outlined text-xs text-emerald-300">verified</span>
+                <span>Action: Udder check recommended before next cycle</span>
+              </div>
+
+            </div>
+
+            <!-- Card Text Content -->
+            <div class="mt-5 text-left">
+              <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-300 uppercase tracking-wider mb-1">
+                <span class="material-symbols-outlined text-xs">analytics</span>
+                Early Detection
+              </div>
+              <h2 class="text-2xl font-extrabold text-white tracking-tight leading-snug">
+                3. Early Warning & Action
+              </h2>
+              <p class="text-sm text-emerald-100/75 mt-2 leading-relaxed font-normal">
+                Receive clear, non-technical risk estimates before physical symptoms occur, safeguarding herd wellness and preventing severe milk yield losses.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Carousel Pagination Indicator Dots -->
+      <div class="flex items-center justify-center gap-2.5 py-1">
+        <button onclick="goToSlide(0)" id="dot-0" class="h-2 rounded-full bg-emerald-400 w-7 transition-all duration-300" aria-label="Slide 1"></button>
+        <button onclick="goToSlide(1)" id="dot-1" class="h-2 rounded-full bg-emerald-800/80 w-2 hover:bg-emerald-600 transition-all duration-300" aria-label="Slide 2"></button>
+        <button onclick="goToSlide(2)" id="dot-2" class="h-2 rounded-full bg-emerald-800/80 w-2 hover:bg-emerald-600 transition-all duration-300" aria-label="Slide 3"></button>
+      </div>
+    </main>
+
+    <!-- Bottom Action Navigation -->
+    <footer class="relative z-20 px-6 pb-8 pt-3 bg-gradient-to-t from-[#07160e] via-[#07160e]/95 to-transparent">
+      <div class="flex items-center gap-3">
+        <!-- Back Button (hidden on slide 0) -->
+        <button id="prevBtn" onclick="prevSlide()" class="hidden w-14 h-14 rounded-2xl glass-pill items-center justify-center text-emerald-200 hover:text-white transition-all active:scale-95 border border-white/10">
+          <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+
+        <!-- Primary Next / Get Started Action -->
+        <button id="nextBtn" onclick="nextSlide()" class="flex-1 h-14 rounded-2xl bg-gradient-to-r from-emerald-500 via-emerald-400 to-teal-400 text-brand-950 font-extrabold text-base tracking-wide flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/25 hover:brightness-105 active:scale-[0.98] transition-all">
+          <span id="btnText">Next Step</span>
+          <span id="btnIcon" class="material-symbols-outlined font-bold text-xl">arrow_forward</span>
+        </button>
+      </div>
+
+      <!-- Trust & Offline Sync Guarantee Note -->
+      <div class="flex items-center justify-center gap-1.5 mt-3 text-[11px] text-emerald-300/70 font-medium">
+        <span class="material-symbols-outlined text-xs text-emerald-400">offline_pin</span>
+        <span>Operates fully offline inside sheds • Syncs on network</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const totalSlides = 3;
+    const track = document.getElementById('carouselTrack');
+    const dots = [
+      document.getElementById('dot-0'),
+      document.getElementById('dot-1'),
+      document.getElementById('dot-2')
+    ];
+    const prevBtn = document.getElementById('prevBtn');
+    const btnText = document.getElementById('btnText');
+    const btnIcon = document.getElementById('btnIcon');
+    const skipBtn = document.getElementById('skipBtn');
+
+    function updateUI() {
+      // Update pagination dots
+      dots.forEach((dot, index) => {
+        if (index === currentSlide) {
+          dot.className = "h-2 rounded-full bg-emerald-400 w-7 transition-all duration-300";
+        } else {
+          dot.className = "h-2 rounded-full bg-emerald-800/80 w-2 hover:bg-emerald-600 transition-all duration-300";
+        }
+      });
+
+      // Update button text & prev button visibility
+      if (currentSlide === 0) {
+        prevBtn.classList.add('hidden');
+        prevBtn.classList.remove('flex');
+        btnText.textContent = "Next Step";
+        btnIcon.textContent = "arrow_forward";
+        skipBtn.classList.remove('opacity-0', 'pointer-events-none');
+      } else if (currentSlide === 1) {
+        prevBtn.classList.remove('hidden');
+        prevBtn.classList.add('flex');
+        btnText.textContent = "Next Step";
+        btnIcon.textContent = "arrow_forward";
+        skipBtn.classList.remove('opacity-0', 'pointer-events-none');
+      } else {
+        prevBtn.classList.remove('hidden');
+        prevBtn.classList.add('flex');
+        btnText.textContent = "Enter Farm Assistant";
+        btnIcon.textContent = "login";
+        skipBtn.classList.add('opacity-0', 'pointer-events-none');
+      }
+    }
+
+    function goToSlide(index) {
+      currentSlide = Math.max(0, Math.min(index, totalSlides - 1));
+      const slideWidth = track.clientWidth;
+      track.scrollTo({
+        left: currentSlide * slideWidth,
+        behavior: 'smooth'
+      });
+      updateUI();
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) {
+        goToSlide(currentSlide + 1);
+      } else {
+        // Final action: Navigate to Login or Dashboard flow
+        alert("Welcome to GauRakshak! Proceeding to Farm Verification & Milking Hub.");
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        goToSlide(currentSlide - 1);
+      }
+    }
+
+    // Synchronize current slide when user swipes manually
+    track.addEventListener('scroll', () => {
+      const slideWidth = track.clientWidth;
+      const newIndex = Math.round(track.scrollLeft / slideWidth);
+      if (newIndex !== currentSlide && newIndex >= 0 && newIndex < totalSlides) {
+        currentSlide = newIndex;
+        updateUI();
+      }
+    });
+
+    // Initialize UI on load
+    updateUI();
+  </script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GauRakshak - Farm Setup & Initial Herd</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Manrope', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#ecf7ea',
+              100: '#d7eed4',
+              500: '#235d3a',
+              700: '#1a472c',
+              800: '#143823',
+            },
+            surface: '#f6faf4',
+            card: '#ffffff',
+            ink: '#19211c',
+            subtle: '#5c6b61',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Manrope', sans-serif;
+      background-color: #f4f8f2;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between text-ink p-5 max-w-md mx-auto">
+
+  <!-- Top Progress Indicator -->
+  <div>
+    <div class="flex items-center justify-between py-2 mb-4">
+      <button class="w-9 h-9 rounded-xl bg-white border border-emerald-900/10 flex items-center justify-center text-ink shadow-sm">
+        <span class="material-symbols-outlined text-lg">arrow_back</span>
+      </button>
+      <div class="text-xs font-bold text-brand-700 bg-brand-50 px-3 py-1 rounded-full border border-brand-500/20">
+        Step 1 of 2: Farm Profile
+      </div>
+      <div class="text-xs font-semibold text-subtle">Skip for now</div>
+    </div>
+
+    <!-- Title & Subtitle -->
+    <div class="space-y-1 mb-6">
+      <h1 class="text-2xl font-extrabold text-ink tracking-tight">Create Your Dairy Farm</h1>
+      <p class="text-sm text-subtle font-medium">Keep it simple. You can register individual cows or complete medical history later.</p>
+    </div>
+
+    <!-- Required Setup Fields (strictly per PDF section 5) -->
+    <div class="space-y-4">
+      
+      <!-- Field 1: Farm Name (Required) -->
+      <div class="bg-card p-4 rounded-2xl border border-emerald-900/10 shadow-sm space-y-2">
+        <label class="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-brand-800">
+          <span>Farm Name *</span>
+          <span class="text-[10px] text-emerald-600 font-semibold normal-case">Required</span>
+        </label>
+        <div class="flex items-center gap-2.5 bg-surface border border-emerald-900/10 focus-within:border-brand-500 rounded-xl px-3.5 py-3">
+          <span class="material-symbols-outlined text-brand-500 text-xl">agriculture</span>
+          <input type="text" value="Shree Krishna Dairy" class="bg-transparent w-full text-base font-bold text-ink focus:outline-none" placeholder="e.g. Anand Dairy Farm">
+        </div>
+      </div>
+
+      <!-- Field 2: Total Cows (Required) -->
+      <div class="bg-card p-4 rounded-2xl border border-emerald-900/10 shadow-sm space-y-2">
+        <label class="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-brand-800">
+          <span>Number of Cows *</span>
+          <span class="text-[10px] text-emerald-600 font-semibold normal-case">Estimated herd size</span>
+        </label>
+        <div class="flex items-center gap-2.5 bg-surface border border-emerald-900/10 focus-within:border-brand-500 rounded-xl px-3.5 py-3">
+          <span class="material-symbols-outlined text-brand-500 text-xl">pets</span>
+          <input type="number" value="28" class="bg-transparent w-full text-base font-bold text-ink focus:outline-none" placeholder="Enter total number">
+          <span class="text-xs font-bold text-subtle">Cows</span>
+        </div>
+      </div>
+
+      <!-- Field 3: Location / Shed Hub (Optional) -->
+      <div class="bg-card p-4 rounded-2xl border border-emerald-900/10 shadow-sm space-y-2">
+        <label class="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-subtle">
+          <span>Location / District</span>
+          <span class="text-[10px] text-subtle font-medium normal-case">Optional</span>
+        </label>
+        <div class="flex items-center gap-2.5 bg-surface border border-emerald-900/10 focus-within:border-brand-500 rounded-xl px-3.5 py-3">
+          <span class="material-symbols-outlined text-subtle text-xl">pin_drop</span>
+          <input type="text" value="Mehsana, Gujarat" class="bg-transparent w-full text-sm font-semibold text-ink focus:outline-none" placeholder="City or Village">
+        </div>
+      </div>
+
+      <!-- Fast Batch Registration Option Note -->
+      <div class="bg-brand-50/70 p-3.5 rounded-2xl border border-brand-500/20 flex items-start gap-3">
+        <span class="material-symbols-outlined text-brand-500 text-xl flex-shrink-0 mt-0.5">info</span>
+        <div class="text-xs text-brand-800 leading-relaxed font-medium">
+          <strong class="font-bold text-brand-900">No long forms required:</strong> In the next screen, you can register your primary cow (<span class="font-bold">Gauri / COW-024</span>) or scan ear-tags in seconds.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Primary Next Action -->
+  <div class="w-full space-y-2 pt-6">
+    <button class="w-full py-4 px-4 bg-brand-500 hover:bg-brand-700 active:scale-[0.99] text-white font-bold text-base rounded-2xl shadow-lg shadow-brand-500/25 flex items-center justify-center gap-2 transition-all">
+      <span>Save & Add First Cow</span>
+      <span class="material-symbols-outlined text-xl">arrow_forward</span>
+    </button>
+    <button class="w-full py-2.5 text-center text-xs font-bold text-subtle hover:text-brand-800 transition-colors">
+      I'll add herd members later &rarr; Go to Dashboard
+    </button>
+  </div>
+
+</body>
+</html>

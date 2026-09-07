@@ -1,0 +1,55 @@
+# Large data files
+mastitis_3000_female_cows_180_days_2_readings.csv
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Virtual Environment
+.env
+.vscode/
+*.code-workspace
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build files
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+pubspec.lock
+build/
+
+# Node/npm
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
