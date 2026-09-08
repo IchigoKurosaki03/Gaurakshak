@@ -952,7 +952,13 @@ class _GauSaathiSheetState extends State<GauSaathiSheet> {
       _isReplying = true;
       _input.clear();
     });
-    final answer = await widget.state.askGauSaathi(text) ?? _answer(text);
+    final backendAnswer = await widget.state.askGauSaathi(text);
+    // The demo backend may not have a selected cow yet; use the richer local
+    // intent router instead of showing the same generic sentence every time.
+    final answer = backendAnswer == null ||
+            backendAnswer.startsWith("I can explain your cows' health")
+        ? _answer(text)
+        : backendAnswer;
     if (!mounted) return;
     setState(() {
       _messages.add(_AssistantMessage(answer, false));

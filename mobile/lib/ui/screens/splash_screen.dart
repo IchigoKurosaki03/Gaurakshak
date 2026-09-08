@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
@@ -32,6 +33,7 @@ class _SplashScreenState extends State<SplashScreen>
   late final Animation<double> _steps;
   VideoPlayerController? _video;
   bool _videoReady = false;
+  bool _completed = false;
 
   static const _grad = [Color(0xFF143823), Color(0xFF1A472C), Color(0xFF0C2316)];
   static const _accent = Color(0xFF98D4A8); // CTA fill (light pasture green)
@@ -80,10 +82,20 @@ class _SplashScreenState extends State<SplashScreen>
         _video = controller;
         _videoReady = true;
       });
+      // Never leave the farmer stuck on the intro if the CTA is missed.
+      Future<void>.delayed(const Duration(milliseconds: 3100), _completeIfMounted);
     } catch (_) {
       // No video has been supplied yet, or this target does not support it.
       // The purpose-built fallback below gives the user a complete splash.
       await controller.dispose();
+      Future<void>.delayed(const Duration(milliseconds: 3100), _completeIfMounted);
+    }
+  }
+
+  void _completeIfMounted() {
+    if (mounted && !_completed) {
+      _completed = true;
+      widget.onComplete();
     }
   }
 
@@ -106,6 +118,7 @@ class _SplashScreenState extends State<SplashScreen>
           fit: StackFit.expand,
           children: [
             Image.asset('assets/videos/splash.gif', fit: BoxFit.cover),
+            _brandMark(),
             Positioned(left: 20, right: 20, bottom: 24, child: SafeArea(child: _videoCta())),
           ],
         ),
@@ -128,6 +141,7 @@ class _SplashScreenState extends State<SplashScreen>
                 child: VideoPlayer(_video!),
               ),
             ),
+            _brandMark(),
             Positioned(
               left: 20,
               right: 20,
@@ -164,7 +178,7 @@ class _SplashScreenState extends State<SplashScreen>
     mainAxisSize: MainAxisSize.min,
     children: [
       Pressable(
-        onTap: widget.onComplete,
+        onTap: _completeIfMounted,
         child: Container(
           height: AppSpace.touchComfortable,
           alignment: Alignment.center,
@@ -177,8 +191,19 @@ class _SplashScreenState extends State<SplashScreen>
         ),
       ),
       const SizedBox(height: 8),
-      GestureDetector(onTap: widget.onComplete, child: Text('Skip', style: AppText.labelSm.copyWith(color: Colors.white.withValues(alpha: 0.9), decoration: TextDecoration.underline))),
+      GestureDetector(onTap: _completeIfMounted, child: Text('Skip', style: AppText.labelSm.copyWith(color: Colors.white.withValues(alpha: 0.9), decoration: TextDecoration.underline))),
     ],
+  );
+
+  Widget _brandMark() => Positioned(
+    top: 48,
+    left: 0,
+    right: 0,
+    child: IgnorePointer(
+      child: Text('GauRakshak', textAlign: TextAlign.center,
+          style: AppText.display.copyWith(color: Colors.white, fontSize: 28,
+              shadows: const [Shadow(color: Colors.black54, blurRadius: 8)])),
+    ),
   );
 
   Widget _topBar() {
