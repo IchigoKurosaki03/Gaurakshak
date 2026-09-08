@@ -53,6 +53,9 @@ class _ScanScreenState extends State<ScanScreen> {
         widget.state.currentSession!.cowTag != cow.tag) {
       widget.state.startDemoSession(cow);
     }
+    // Keep the verified identity as the single source of truth for every
+    // downstream screen (session, readings, prediction, and alert).
+    widget.state.selectCow(cow);
     setState(() => _selected = cow);
     Navigator.push(
       context,
