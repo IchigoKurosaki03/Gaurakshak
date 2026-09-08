@@ -10,8 +10,14 @@ dataclass. Swapping the body of this function must not change that contract.
 IMPORTANT: output is an early-warning RISK ESTIMATE, never a medical diagnosis.
 """
 from dataclasses import dataclass, field
+import math
 
-MODEL_VERSION = "mock-rule-v1"
+MODEL_VERSION = "heuristic-early-warning-v2"
+FEATURE_ORDER = (
+    "history_count", "milk_yield", "milk_conductivity", "milk_temperature",
+    "body_surface_temperature", "activity", "yield_change",
+    "conductivity_change", "activity_change",
+)
 
 
 @dataclass
@@ -38,6 +44,31 @@ class RiskResult:
     model_version: str = MODEL_VERSION
 
 
+def feature_vector(features: RiskFeatures) -> list[float]:
+    """Stable numeric feature order for a future trained model adapter.
+
+    Missing sensor values are represented as zero only at the adapter boundary;
+    the predictor itself still uses ``None`` to distinguish missing data from a
+    real zero reading.
+    """
+    return [
+        float(features.history_count),
+        *[
+            0.0 if value is None or not math.isfinite(float(value)) else float(value)
+            for value in (
+                features.milk_yield,
+                features.milk_conductivity,
+                features.milk_temperature,
+                features.body_surface_temperature,
+                features.activity,
+                features.yield_change,
+                features.conductivity_change,
+                features.activity_change,
+            )
+        ],
+    ]
+
+
 # Rough reference bands for healthy Indian dairy cattle (demo heuristics only,
 # NOT clinically validated). Replaced entirely once the real model exists.
 _CONDUCTIVITY_HIGH = 5.5   # mS/cm — elevated conductivity is a classic mastitis signal
@@ -48,6 +79,22 @@ _ACTIVITY_LOW = 40.0       # index — lethargy
 
 def predict_risk(f: RiskFeatures) -> RiskResult:
     """Return a mastitis risk estimate from current + trend features."""
+    # Reject non-finite values before threshold logic; sensor gateways must not
+    # turn NaN/Infinity into an apparently safe result.
+    for value in (
+        f.milk_yield, f.milk_conductivity, f.milk_temperature,
+        f.body_surface_temperature, f.activity, f.yield_change,
+        f.conductivity_change, f.activity_change,
+    ):
+        if value is not None and not math.isfinite(float(value)):
+            return RiskResult(
+                risk_score=0.0,
+                risk_level="Insufficient",
+                trend="Unknown",
+                contributing_factors=["Sensor values are invalid or incomplete"],
+                model_version=MODEL_VERSION,
+            )
+
     # Honesty guard: with no current sensor signal at all there is nothing to
     # assess. We must NOT fall through to a 0.0 score / "Low" — that would tell
     # the farmer a cow is healthy when we simply have no readings for her yet.
