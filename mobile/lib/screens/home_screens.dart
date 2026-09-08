@@ -778,6 +778,7 @@ class MoreScreen extends StatelessWidget {
         _Setting(title: 'Alerts', subtitle: state.alerts.isEmpty ? 'No open alerts' : '${state.alerts.length} open alert${state.alerts.length == 1 ? '' : 's'}', icon: Icons.notifications_active_outlined, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AlertsScreen(state: state)))),
         _Setting(title: 'Farm settings', subtitle: '${state.farm.name} · ${state.farm.location}', icon: Icons.agriculture_outlined, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => FarmSettingsScreen(state: state)))),
         _Setting(title: 'Profile', subtitle: 'Farmer account and farm access', icon: Icons.person_outline, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProfileScreen(state: state)))),
+        _Setting(title: 'Login methods', subtitle: 'Mobile OTP active · Google via Firebase setup', icon: Icons.lock_outline, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => LoginMethodsScreen(state: state)))),
         _Setting(title: 'Daily barn checklist', subtitle: 'Water, hygiene, sensors, and herd observation', icon: Icons.checklist_rtl_outlined, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DailyChecklistScreen()))),
         _Setting(title: tr(state.language, 'language'), subtitle: state.language.label, icon: Icons.language, onTap: () => showModalBottomSheet<void>(context: context, showDragHandle: true, builder: (_) => _LanguagePicker(state: state))),
         _Setting(title: 'Offline and sync', subtitle: state.isOnline ? 'Demo data cached on this device' : 'Working offline; retry sync when connected', icon: Icons.cloud_outlined, onTap: state.toggleConnection),
@@ -787,6 +788,27 @@ class MoreScreen extends StatelessWidget {
         _Setting(title: 'About GauRakshak', subtitle: 'Offline-first herd and milk monitoring', icon: Icons.info_outline, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()))),
       ],
     ),
+  );
+}
+
+class LoginMethodsScreen extends StatelessWidget {
+  const LoginMethodsScreen({super.key, required this.state});
+  final FarmState state;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Login methods')),
+    body: ListView(padding: const EdgeInsets.all(20), children: [
+      const Text('Choose how farmers access GauRakshak', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
+      const SizedBox(height: 8),
+      const Text('Phone OTP is the current offline-friendly method. Google login can be enabled after Firebase is configured for Android and web.', style: TextStyle(color: Colors.black54, height: 1.4)),
+      const SizedBox(height: 20),
+      AppCard(child: ListTile(leading: const Icon(Icons.phone_android, color: GauColors.forest), title: const Text('Mobile number + OTP'), subtitle: const Text('Active • demo OTP locally, SMS provider in production'), trailing: const Icon(Icons.check_circle, color: GauColors.forest))),
+      const SizedBox(height: 12),
+      AppCard(child: ListTile(leading: const Icon(Icons.account_circle_outlined, color: GauColors.forest), title: const Text('Google account'), subtitle: const Text('Firebase setup required'), trailing: OutlinedButton(onPressed: () => showDialog<void>(context: context, builder: (_) => AlertDialog(title: const Text('Google login setup'), content: const Text('Add Firebase project configuration, Android google-services.json, web Firebase options, and enable Google Sign-In before turning this on.'), actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))])), child: const Text('Setup')))),
+      const SizedBox(height: 20),
+      AppHint(icon: Icons.security_outlined, message: 'Authentication tokens and provider keys stay on the backend. Never put SMS or Firebase server credentials in the Flutter app.'),
+    ]),
   );
 }
 
