@@ -28,6 +28,12 @@ class Settings(BaseSettings):
     # A fixed OTP is convenient for a local demo only. Set this false in every
     # deployed environment and connect a real SMS OTP provider.
     demo_auth_enabled: bool = True
+    # Real SMS delivery is intentionally opt-in. Keep provider credentials in
+    # backend/.env; never place them in Flutter or source control.
+    sms_provider: str = ""
+    sms_api_key: str = ""
+    sms_sender_id: str = ""
+    sms_template_id: str = ""
 
     cors_origins: str = "http://localhost,http://localhost:3000,http://localhost:8080,http://127.0.0.1:8080"
 

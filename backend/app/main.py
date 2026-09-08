@@ -19,6 +19,8 @@ if settings.app_env.lower() in {"production", "prod"}:
         raise RuntimeError("JWT_SECRET_KEY must be set in production")
     if settings.demo_auth_enabled:
         raise RuntimeError("DEMO_AUTH_ENABLED must be false in production")
+    if not settings.sms_provider or not settings.sms_api_key:
+        raise RuntimeError("SMS_PROVIDER and SMS_API_KEY must be set in production")
     if len(settings.jwt_secret_key) < 32:
         raise RuntimeError("JWT_SECRET_KEY must be at least 32 characters in production")
 
