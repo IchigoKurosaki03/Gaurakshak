@@ -11,10 +11,11 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Path as ApiPath, Query, UploadFile
 from sqlalchemy.orm import Session
 
 from ..database import get_db
+from ..config import settings
 from ..models import Alert, Cow, HealthRecord, MilkingSession, Prediction, PredictionFactor, SensorReading, User
 from ..schemas import (
     CowCreate, CowUpdate, CowOut,
@@ -50,7 +51,7 @@ def _normalize_cow_id(value: str) -> str:
 
 def _validate_sample_id(cow_id: str) -> None:
     match = re.fullmatch(r"[a-zA-Z]+[-_ ]*0*(\d+)", cow_id.strip())
-    # The only capture group is the numeric suffix.
+    # This pattern has one capture group: the numeric suffix.
     if match and int(match.group(1)) > 50:
         raise HTTPException(status_code=400, detail="Only cow IDs 1 through 50 are enabled for this dataset preview")
 
@@ -67,48 +68,79 @@ def _get_csv_samples(cow_id: str, limit: int) -> list[dict[str, Any]]:
         raise HTTPException(status_code=404, detail="CSV dataset not found on the server")
 
     rows: list[dict[str, Any]] = []
+    target_id = _normalize_cow_id(cow_id)
+    found_target = False
     with csv_path.open("r", newline="", encoding="utf-8-sig") as handle:
         reader = csv.DictReader(handle)
         for row in reader:
             if row.get("cow_id") is None:
                 continue
-            if _normalize_cow_id(str(row["cow_id"])) == _normalize_cow_id(cow_id):
+            row_id = _normalize_cow_id(str(row["cow_id"]))
+            if row_id == target_id:
+                found_target = True
                 rows.append({
                     "cow_id": row.get("cow_id"),
                     "farm_id": row.get("farm_id"),
                     "recorded_date": row.get("recorded_date"),
                     "recorded_time": row.get("recorded_time"),
                     "reading_session": row.get("reading_session"),
+                    "sex": row.get("sex"),
                     "breed": row.get("breed"),
                     "age_years": float(row.get("age_years") or 0),
                     "lactation_number": int(float(row.get("lactation_number") or 0)),
+                    "previous_mastitis_history": int(float(row.get("previous_mastitis_history") or 0)),
+                    "vaccination_status": row.get("vaccination_status"),
                     "milk_yield_liters": float(row.get("milk_yield_liters") or 0),
                     "milk_temperature_c": float(row.get("milk_temperature_c") or 0),
+                    "milk_ph": float(row.get("milk_ph") or 0),
                     "milk_conductivity_ms_cm": float(row.get("milk_conductivity_ms_cm") or 0),
                     "somatic_cell_count": int(float(row.get("somatic_cell_count") or 0)),
                     "body_temperature_c": float(row.get("body_temperature_c") or 0),
                     "udder_temperature_c": float(row.get("udder_temperature_c") or 0),
+                    "rumination_minutes": float(row.get("rumination_minutes") or 0),
+                    "milking_duration_minutes": float(row.get("milking_duration_minutes") or 0),
+                    "milking_hygiene_score": float(row.get("milking_hygiene_score") or 0),
+                    "milking_interval_hours": float(row.get("milking_interval_hours") or 0),
+                    "udder_swelling_score": float(row.get("udder_swelling_score") or 0),
+                    "udder_redness_score": float(row.get("udder_redness_score") or 0),
+                    "milk_abnormality_score": float(row.get("milk_abnormality_score") or 0),
+                    "previous_disease_count": int(float(row.get("previous_disease_count") or 0)),
+                    "antibiotic_treatment_last_30_days": int(float(row.get("antibiotic_treatment_last_30_days") or 0)),
+                    "mastitis_current": int(float(row.get("mastitis_current") or 0)),
                     "risk_probability": float(row.get("risk_probability") or 0),
                     "risk_category": row.get("risk_category"),
                     "mastitis_next_7_days": int(float(row.get("mastitis_next_7_days") or 0)),
                     "mastitis_next_14_days": int(float(row.get("mastitis_next_14_days") or 0)),
                 })
-                if len(rows) >= limit:
-                    break
+            elif found_target:
+                # The source is ordered by cow_id, so once the next cow starts
+                # we already have every reading for the requested cow. This
+                # avoids rescanning 189 MB for each health or milk lookup.
+                break
 
     if not rows:
         raise HTTPException(status_code=404, detail=f"No CSV samples found for cow ID {cow_id}")
 
-    return rows[:limit]
+    def timestamp(item: dict[str, Any]) -> datetime:
+        raw_date = str(item.get("recorded_date") or "")
+        raw_time = str(item.get("recorded_time") or "")
+        try:
+            return datetime.strptime(f"{raw_date} {raw_time}", "%d-%m-%Y %H:%M")
+        except ValueError:
+            return datetime.min
+
+    # Keep only the newest requested samples, but return them in chronological
+    # order so charts read naturally from left (older) to right (newer).
+    rows.sort(key=timestamp)
+    return rows[-limit:]
 
 
 @router.get("/cows/sample-data")
 def get_cow_samples(
-    cow_id: str = Query(..., min_length=1),
+    cow_id: str = Query(..., min_length=2, max_length=40, pattern=r"^[A-Za-z]+[-_ ]*\d+$"),
     limit: int = Query(50, ge=1, le=50),
-    user: User = Depends(get_current_user),
 ):
-    """Return a maximum of 50 historical samples for a single cow from the uploaded dataset."""
+    """Return public local-preview CSV samples, ordered oldest to newest."""
     return _get_csv_samples(cow_id, limit)
 
 
@@ -152,17 +184,15 @@ def _csv_catalog() -> tuple[dict[str, Any], ...]:
 @router.get("/cows/catalog")
 def get_csv_catalog(
     limit: int = Query(50, ge=1, le=50),
-    user: User = Depends(get_current_user),
 ):
-    """Return the first 50 unique cow records from the uploaded CSV catalog."""
+    """Return the local-preview catalog; farm records remain authenticated."""
     return list(_csv_catalog()[:limit])
 
 
 @router.get("/cows/{cow_id}/samples")
 def get_cow_samples_by_path(
-    cow_id: str,
+    cow_id: str = ApiPath(..., min_length=2, max_length=40, pattern=r"^[A-Za-z]+[-_ ]*\d+$"),
     limit: int = Query(50, ge=1, le=50),
-    user: User = Depends(get_current_user),
 ):
     return _get_csv_samples(cow_id, limit)
 
@@ -206,9 +236,15 @@ def import_cows_csv(
     farm_id = _require_farm(user)
     if not file.filename or not file.filename.lower().endswith(".csv"):
         raise HTTPException(status_code=400, detail="Upload a .csv file")
+    declared_size = file.size
+    if declared_size is not None and declared_size > settings.max_upload_bytes:
+        raise HTTPException(status_code=413, detail="CSV is too large")
 
     try:
-        text = (file.file.read()).decode("utf-8-sig")
+        payload = file.file.read(settings.max_upload_bytes + 1)
+        if len(payload) > settings.max_upload_bytes:
+            raise HTTPException(status_code=413, detail="CSV is too large")
+        text = payload.decode("utf-8-sig")
     except UnicodeDecodeError as error:
         raise HTTPException(status_code=400, detail="CSV must be UTF-8 encoded") from error
 
@@ -234,6 +270,8 @@ def import_cows_csv(
     imported: list[Cow] = []
     seen_ids: set[str] = set()
     for row_number, row in enumerate(rows, start=2):
+        if row_number > 1002:
+            raise HTTPException(status_code=400, detail="CSV is limited to 1,000 cows per import")
         tag_id = value(row, id_column)
         name = value(row, "name")
         if not tag_id or not name:

@@ -40,6 +40,7 @@ def _build_features(cow_id: int, db: Session) -> RiskFeatures:
         return (cur - base) if (cur is not None and base is not None) else None
 
     return RiskFeatures(
+        history_count=len(readings),
         milk_yield=latest.milk_yield,
         milk_conductivity=latest.milk_conductivity,
         milk_temperature=latest.milk_temperature,

@@ -12,28 +12,33 @@ class DemoFarmRepository {
   List<Cow> initialCows() => [
     Cow(
       name: 'Gauri', tag: 'COW-024', breed: 'Gir', age: '5 years',
+      riskScore: 72,
       todayMilkLitres: 8.7, risk: RiskLevel.attention, trend: 'Increasing',
       factors: ['Milk yield is lower', 'Conductivity is rising', 'Activity is lower'],
       timeline: ['Today: High early-warning risk estimate', '28 Aug: Vaccination recorded', '15 Aug: Calving record added'],
     ),
     Cow(
       name: 'Nandini', tag: 'COW-019', breed: 'Sahiwal', age: '4 years',
+      riskScore: 12,
       todayMilkLitres: 10.2, risk: RiskLevel.healthy, trend: 'Normal', factors: [],
       timeline: ['Today: Milking recorded', '18 Aug: Healthy check recorded'],
     ),
     Cow(
       name: 'Radha', tag: 'COW-011', breed: 'Jersey cross', age: '6 years',
+      riskScore: 44,
       todayMilkLitres: 7.9, risk: RiskLevel.monitor, trend: 'Decreasing',
       factors: ['Milk yield changed from her usual level'],
       timeline: ['Today: Monitor at next milking', '12 Aug: Treatment note added'],
     ),
     Cow(
       name: 'Kamadhenu', tag: 'COW-030', breed: 'Gir', age: '3 years',
+      riskScore: null,
       todayMilkLitres: 0, risk: RiskLevel.insufficientHistory, trend: 'No history yet', factors: [],
       timeline: ['Today: Profile created - collect the first session'],
     ),
     Cow(
       name: 'Sita', tag: 'COW-008', breed: 'Sahiwal', age: '5 years',
+      riskScore: 18,
       todayMilkLitres: 9.8, risk: RiskLevel.healthy, trend: 'Improving',
       factors: ['Milk yield is returning to her usual level'],
       timeline: ['Today: Improving after a monitored period', '01 Sep: Monitor record added'],

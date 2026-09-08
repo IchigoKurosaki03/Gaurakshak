@@ -102,8 +102,8 @@ class Prediction(Base):
     cow_id: Mapped[int] = mapped_column(ForeignKey("cows.id"), index=True)
     timestamp: Mapped[datetime] = mapped_column(DateTime, default=_now, index=True)
     risk_score: Mapped[float] = mapped_column(Float)
-    risk_level: Mapped[str] = mapped_column(String(10))  # Low | Medium | High
-    trend: Mapped[str] = mapped_column(String(12))       # Normal | Increasing | Decreasing
+    risk_level: Mapped[str] = mapped_column(String(20))  # Low | Medium | High | Insufficient
+    trend: Mapped[str] = mapped_column(String(12))       # Normal | Increasing | Decreasing | Unknown
     model_version: Mapped[str] = mapped_column(String(30), default="mock-rule-v1")
 
     cow: Mapped["Cow"] = relationship(back_populates="predictions")

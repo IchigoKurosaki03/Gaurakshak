@@ -17,8 +17,13 @@ class Settings(BaseSettings):
     jwt_secret_key: str = "dev-only-insecure-secret-change-me"
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 1440
+    max_upload_bytes: int = 2_000_000
 
     gausaathi_llm_api_key: str = ""
+    # Optional OpenAI-compatible provider.  Keep both the endpoint and model
+    # configurable because providers use different model identifiers.
+    gausaathi_llm_base_url: str = ""
+    gausaathi_llm_model: str = ""
 
     # A fixed OTP is convenient for a local demo only. Set this false in every
     # deployed environment and connect a real SMS OTP provider.
@@ -31,8 +36,9 @@ class Settings(BaseSettings):
     @property
     def cors_origin_list(self) -> list[str]:
         configured = [o.strip() for o in self.cors_origins.split(",") if o.strip()]
-        local_origins = ["http://localhost:8080", "http://127.0.0.1:8080"]
-        return list(dict.fromkeys(configured + local_origins))
+        if self.app_env.lower() in {"development", "dev", "local"}:
+            configured.extend(["http://localhost:8080", "http://127.0.0.1:8080"])
+        return list(dict.fromkeys(configured))
 
     @property
     def cors_origin_regex(self) -> str | None:

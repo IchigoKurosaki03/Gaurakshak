@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 
+import '../ui/theme/tokens.dart';
+
 abstract final class GauColors {
-  static const forest = Color(0xFF034525);
-  static const forestDark = Color(0xFF1A4D2E);
-  static const cream = Color(0xFFF2FCEF);
-  static const ink = Color(0xFF151E16);
-  static const mint = Color(0xFFE8F3EB);
-  static const card = Color(0xFFFFFFFF);
-  static const amber = Color(0xFFE67E22);
-  static const amberSurface = Color(0xFFFEF5E7);
-  static const red = Color(0xFFD9534F);
-  static const redSurface = Color(0xFFFDF2F2);
-  static const healthySurface = Color(0xFFEAF5EA);
-  static const white = Colors.white;
+  static const forest = AppColors.forest;
+  static const forestDark = AppColors.forestDeep;
+  static const cream = AppColors.canvas;
+  static const ink = AppColors.ink;
+  static const mint = AppColors.mint;
+  static const card = AppColors.card;
+  static const amber = AppColors.monitor;
+  static const amberSurface = AppColors.monitorSurface;
+  static const red = AppColors.atRisk;
+  static const redSurface = AppColors.atRiskSurface;
+  static const healthySurface = AppColors.healthySurface;
+  static const white = AppColors.onForest;
 }
 
 abstract final class GauSpace {

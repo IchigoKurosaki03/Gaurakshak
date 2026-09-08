@@ -460,8 +460,8 @@ class _SetupState extends State<_Setup> {
                 name.text,
                 location.text,
                 int.tryParse(herd.text) ?? 28,
-                cowName.text,
-                cowTag.text,
+                cowName: cowName.text,
+                cowTag: cowTag.text,
               );
               if (created && mounted) widget.next();
             }),
@@ -494,12 +494,11 @@ class _DashboardState extends State<_Dashboard> {
   Widget build(BuildContext context) {
     final state = widget.state;
     final alerts = state.cows.where((c) => c.risk != RiskLevel.healthy).take(2);
-    final selectedCow = state.selectedCow ?? state.cows.first;
     final content = switch (tab) {
       1 => _CowList(cows: state.cows, select: widget.select),
-      2 => _CowHealth(cow: selectedCow, start: widget.scan),
+      2 => _CowHealthLookup(state: state, start: widget.scan),
       3 => _AlertList(cows: alerts.toList(), select: widget.select),
-      4 => _MilkOverview(state: state),
+      4 => _MilkLookup(state: state),
       _ => _DashboardHome(
         state: state,
         alerts: alerts,
@@ -552,7 +551,7 @@ class _DashboardHome extends StatelessWidget {
           children: [
             _FarmTop(state.farm),
             const SizedBox(height: 15),
-            const _FarmStatus(),
+            _FarmStatus(herdSize: state.cows.length),
             const SizedBox(height: 15),
             InkWell(onTap: scan, child: const _StartCard()),
             const SizedBox(height: 20),
@@ -655,6 +654,8 @@ class _CowList extends StatelessWidget {
   );
 }
 
+// Legacy visual reference retained while the data-driven lookup replaces it.
+// ignore: unused_element
 class _CowHealth extends StatelessWidget {
   const _CowHealth({required this.cow, required this.start});
   final Cow cow;
@@ -708,6 +709,250 @@ class _CowHealth extends StatelessWidget {
   );
 }
 
+class _CowHealthLookup extends StatefulWidget {
+  const _CowHealthLookup({required this.state, required this.start});
+  final FarmState state;
+  final VoidCallback start;
+
+  @override
+  State<_CowHealthLookup> createState() => _CowHealthLookupState();
+}
+
+class _CowHealthLookupState extends State<_CowHealthLookup> {
+  final _tag = TextEditingController();
+  Cow? _cow;
+  bool _searched = false;
+
+  @override
+  void dispose() {
+    _tag.dispose();
+    super.dispose();
+  }
+
+  Future<void> _lookup() async {
+    final cow = await widget.state.findCowFromCsv(_tag.text);
+    if (mounted) {
+      setState(() {
+        _cow = cow;
+        _searched = true;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final row = widget.state.sampleData.isEmpty ? <String, dynamic>{} : widget.state.sampleData.first;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 24),
+      children: [
+        const _PageHeading('Cow health', 'Enter a cow ID to view health and wearable sensor readings from the CSV.'),
+        const SizedBox(height: 16),
+        _CsvCowLookup(controller: _tag, label: 'Find health record', onSearch: _lookup),
+        if (_searched && _cow == null) ...[
+          const SizedBox(height: 14),
+          const _Notice('No CSV health record was found for that cow ID. Try an ID such as COW_0002.'),
+        ],
+        if (_cow != null) ...[
+          const SizedBox(height: 16),
+          _CsvCowHeader(cow: _cow!, row: row),
+          const SizedBox(height: 12),
+          _Card(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Row(children: [
+              Icon(Icons.sensors, color: GauColors.forest),
+              SizedBox(width: 9),
+              Text('Health & wearable readings', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+            ]),
+            const SizedBox(height: 14),
+            _MetricGrid(items: [
+              _CsvMetric('Body temperature', _csvValue(row, 'body_temperature_c', suffix: ' °C'), Icons.thermostat, GauColors.forest),
+              _CsvMetric('Udder temperature', _csvValue(row, 'udder_temperature_c', suffix: ' °C'), Icons.device_thermostat, GauColors.amber),
+              _CsvMetric('Rumination', _csvValue(row, 'rumination_minutes', suffix: ' min'), Icons.psychology_outlined, GauColors.forest),
+              _CsvMetric('Mastitis now', _csvYesNo(row['mastitis_current']), Icons.health_and_safety_outlined, GauColors.red),
+              _CsvMetric('Udder swelling', _csvValue(row, 'udder_swelling_score'), Icons.water_damage_outlined, GauColors.amber),
+              _CsvMetric('Udder redness', _csvValue(row, 'udder_redness_score'), Icons.color_lens_outlined, GauColors.red),
+              _CsvMetric('Mastitis risk', _csvValue(row, 'risk_category'), Icons.warning_amber_rounded, GauColors.amber),
+              _CsvMetric('Risk probability', _csvPercent(row['risk_probability']), Icons.percent, GauColors.red),
+            ]),
+          ])),
+          const SizedBox(height: 12),
+          _Card(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('Health history & care', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 12),
+            _DetailLine('Previous mastitis', _csvYesNo(row['previous_mastitis_history'])),
+            _DetailLine('Vaccination', _csvValue(row, 'vaccination_status')),
+            _DetailLine('Previous diseases', _csvValue(row, 'previous_disease_count')),
+            _DetailLine('Antibiotics in last 30 days', _csvYesNo(row['antibiotic_treatment_last_30_days'])),
+          ])),
+          const SizedBox(height: 14),
+          _Action('Start sensor-assisted milking', Icons.sensors, widget.start),
+        ],
+      ],
+    );
+  }
+}
+
+class _MilkLookup extends StatefulWidget {
+  const _MilkLookup({required this.state});
+  final FarmState state;
+
+  @override
+  State<_MilkLookup> createState() => _MilkLookupState();
+}
+
+class _MilkLookupState extends State<_MilkLookup> {
+  final _tag = TextEditingController();
+  Cow? _cow;
+  bool _searched = false;
+
+  @override
+  void dispose() {
+    _tag.dispose();
+    super.dispose();
+  }
+
+  Future<void> _lookup() async {
+    final cow = await widget.state.findCowFromCsv(_tag.text);
+    if (mounted) {
+      setState(() {
+        _cow = cow;
+        _searched = true;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final row = widget.state.sampleData.isEmpty ? <String, dynamic>{} : widget.state.sampleData.first;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 24),
+      children: [
+        const _PageHeading('Milk', 'Enter a cow ID to view its milk-quality and milking readings from the CSV.'),
+        const SizedBox(height: 16),
+        _CsvCowLookup(controller: _tag, label: 'Find milk record', onSearch: _lookup),
+        if (_searched && _cow == null) ...[
+          const SizedBox(height: 14),
+          const _Notice('No CSV milk record was found for that cow ID. Try an ID such as COW_0002.'),
+        ],
+        if (_cow != null) ...[
+          const SizedBox(height: 16),
+          _CsvCowHeader(cow: _cow!, row: row),
+          const SizedBox(height: 12),
+          _Card(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Row(children: [
+              Icon(Icons.water_drop_outlined, color: GauColors.forest),
+              SizedBox(width: 9),
+              Text('Milk quality & milking readings', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+            ]),
+            const SizedBox(height: 14),
+            _MetricGrid(items: [
+              _CsvMetric('Yield', _csvValue(row, 'milk_yield_liters', suffix: ' L'), Icons.water_drop_outlined, GauColors.forest),
+              _CsvMetric('Conductivity', _csvValue(row, 'milk_conductivity_ms_cm', suffix: ' mS/cm'), Icons.speed, GauColors.amber),
+              _CsvMetric('Milk temperature', _csvValue(row, 'milk_temperature_c', suffix: ' °C'), Icons.thermostat, GauColors.amber),
+              _CsvMetric('Milk pH', _csvValue(row, 'milk_ph'), Icons.science_outlined, GauColors.forest),
+              _CsvMetric('Somatic cell count', _csvValue(row, 'somatic_cell_count'), Icons.biotech_outlined, GauColors.red),
+              _CsvMetric('Milking duration', _csvValue(row, 'milking_duration_minutes', suffix: ' min'), Icons.timer_outlined, GauColors.forest),
+              _CsvMetric('Hygiene score', _csvValue(row, 'milking_hygiene_score'), Icons.clean_hands_outlined, GauColors.forest),
+              _CsvMetric('Milk abnormality', _csvValue(row, 'milk_abnormality_score'), Icons.opacity_outlined, GauColors.red),
+            ]),
+          ])),
+          const SizedBox(height: 12),
+          _Card(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('Milking session', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 12),
+            _DetailLine('Session', _csvValue(row, 'reading_session')),
+            _DetailLine('Recorded', '${_csvValue(row, 'recorded_date')} · ${_csvValue(row, 'recorded_time')}'),
+            _DetailLine('Milking interval', _csvValue(row, 'milking_interval_hours', suffix: ' hours')),
+            _DetailLine('Risk category', _csvValue(row, 'risk_category')),
+          ])),
+        ],
+      ],
+    );
+  }
+}
+
+class _CsvCowLookup extends StatelessWidget {
+  const _CsvCowLookup({required this.controller, required this.label, required this.onSearch});
+  final TextEditingController controller;
+  final String label;
+  final Future<void> Function() onSearch;
+  @override
+  Widget build(BuildContext context) => _Card(Row(children: [
+    Expanded(child: TextField(
+      controller: controller,
+      textInputAction: TextInputAction.search,
+      onSubmitted: (_) => onSearch(),
+      decoration: const InputDecoration(border: InputBorder.none, hintText: 'e.g. COW_0002 or COW-02'),
+    )),
+    const SizedBox(width: 8),
+    FilledButton.icon(onPressed: onSearch, icon: const Icon(Icons.search), label: Text(label)),
+  ]));
+}
+
+class _CsvCowHeader extends StatelessWidget {
+  const _CsvCowHeader({required this.cow, required this.row});
+  final Cow cow;
+  final Map<String, dynamic> row;
+  @override
+  Widget build(BuildContext context) => _Card(Row(children: [
+    _CowIcon(cow),
+    const SizedBox(width: 12),
+    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(cow.tag, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+      Text('Breed: ${_csvValue(row, 'breed')} · ${_csvValue(row, 'reading_session')} reading', style: const TextStyle(color: Color(0xFF5C6B61))),
+    ])),
+    _RiskPill(cow.risk),
+  ]));
+}
+
+class _MetricGrid extends StatelessWidget {
+  const _MetricGrid({required this.items});
+  final List<_CsvMetric> items;
+  @override
+  Widget build(BuildContext context) => Wrap(
+    spacing: 8,
+    runSpacing: 8,
+    children: items.map((item) => SizedBox(width: (MediaQuery.sizeOf(context).width - 72) / 2, child: _Info(item.label, item.value, item.icon, item.color))).toList(),
+  );
+}
+
+class _CsvMetric {
+  const _CsvMetric(this.label, this.value, this.icon, this.color);
+  final String label, value;
+  final IconData icon;
+  final Color color;
+}
+
+class _DetailLine extends StatelessWidget {
+  const _DetailLine(this.label, this.value);
+  final String label, value;
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 6),
+    child: Row(children: [
+      Expanded(child: Text(label, style: const TextStyle(color: Color(0xFF5C6B61)))),
+      Flexible(child: Text(value, textAlign: TextAlign.end, style: const TextStyle(fontWeight: FontWeight.w700))),
+    ]),
+  );
+}
+
+String _csvValue(Map<String, dynamic> row, String key, {String suffix = ''}) {
+  final value = row[key];
+  if (value == null || value.toString().trim().isEmpty) return 'Not available';
+  if (value is num) return '${value.toStringAsFixed(value % 1 == 0 ? 0 : 2)}$suffix';
+  return '${value.toString()}$suffix';
+}
+
+String _csvPercent(Object? value) {
+  if (value is num) return '${(value * 100).toStringAsFixed(1)}%';
+  final parsed = double.tryParse(value?.toString() ?? '');
+  return parsed == null ? 'Not available' : '${(parsed * 100).toStringAsFixed(1)}%';
+}
+
+String _csvYesNo(Object? value) {
+  final normalized = value?.toString().trim().toLowerCase() ?? '';
+  return ['1', 'true', 'yes', 'y'].contains(normalized) ? 'Yes' : 'No';
+}
+
 class _AlertList extends StatelessWidget {
   const _AlertList({required this.cows, required this.select});
   final List<Cow> cows;
@@ -724,6 +969,7 @@ class _AlertList extends StatelessWidget {
   );
 }
 
+// ignore: unused_element
 class _MilkOverview extends StatelessWidget {
   const _MilkOverview({required this.state});
   final FarmState state;
@@ -1485,7 +1731,8 @@ class _FarmTop extends StatelessWidget {
 }
 
 class _FarmStatus extends StatelessWidget {
-  const _FarmStatus();
+  const _FarmStatus({required this.herdSize});
+  final int herdSize;
   @override
   Widget build(BuildContext context) => _Card(
     const Row(
@@ -1546,7 +1793,7 @@ class _StartCard extends StatelessWidget {
                 ),
               ),
               Text(
-                'Scan RFID ear-tag to identify cow',
+                'Scan RFID tag or smart halter',
                 style: TextStyle(color: Color(0xDDE9F4E7), fontSize: 11),
               ),
             ],

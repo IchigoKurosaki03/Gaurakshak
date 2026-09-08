@@ -1,14 +1,14 @@
 """Sensor-reading ingestion. Same endpoint the real ESP32 will POST to later;
 for now the simulator script feeds it. Accepts cow_id OR tag_id.
 """
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import Cow, MilkingSession, SensorReading, User
-from ..schemas import SensorReadingCreate, SensorReadingOut
+from ..schemas import SensorNodeStatusOut, SensorReadingCreate, SensorReadingOut
 from ..security import get_current_user
 
 router = APIRouter(tags=["sensors"])
@@ -74,3 +74,53 @@ def cow_readings(
         .limit(min(limit, 500))
         .all()
     )
+
+
+@router.get("/sensors/status", response_model=list[SensorNodeStatusOut])
+def sensor_status(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Return the latest persisted state for each sensor node in this farm."""
+    sessions = (
+        db.query(MilkingSession, Cow)
+        .join(Cow, Cow.id == MilkingSession.cow_id)
+        .filter(Cow.farm_id == user.farm_id, MilkingSession.sensor_id.isnot(None))
+        .order_by(MilkingSession.started_at.desc())
+        .all()
+    )
+    now = datetime.now(UTC)
+    seen_nodes: set[str] = set()
+    nodes: list[SensorNodeStatusOut] = []
+    for session, cow in sessions:
+        sensor_id = session.sensor_id
+        if not sensor_id or sensor_id in seen_nodes:
+            continue
+        seen_nodes.add(sensor_id)
+        latest = (
+            db.query(SensorReading)
+            .filter(SensorReading.session_id == session.id)
+            .order_by(SensorReading.timestamp.desc())
+            .first()
+        )
+        last_seen = latest.timestamp if latest is not None else session.started_at
+        if last_seen.tzinfo is None:
+            last_seen = last_seen.replace(tzinfo=UTC)
+        reading_count = (
+            db.query(SensorReading)
+            .filter(SensorReading.session_id == session.id)
+            .count()
+        )
+        nodes.append(
+            SensorNodeStatusOut(
+                sensor_id=sensor_id,
+                cow_id=cow.id,
+                cow_tag=cow.tag_id,
+                last_seen_at=last_seen,
+                reading_count=reading_count,
+                status="online"
+                if session.ended_at is None and now - last_seen <= timedelta(minutes=30)
+                else "idle",
+            )
+        )
+    return nodes

@@ -17,6 +17,7 @@ MODEL_VERSION = "mock-rule-v1"
 @dataclass
 class RiskFeatures:
     """What the predictor needs. Values may be None when a sensor is absent."""
+    history_count: int = 0
     milk_yield: float | None = None
     milk_conductivity: float | None = None
     milk_temperature: float | None = None
@@ -47,6 +48,27 @@ _ACTIVITY_LOW = 40.0       # index — lethargy
 
 def predict_risk(f: RiskFeatures) -> RiskResult:
     """Return a mastitis risk estimate from current + trend features."""
+    # Honesty guard: with no current sensor signal at all there is nothing to
+    # assess. We must NOT fall through to a 0.0 score / "Low" — that would tell
+    # the farmer a cow is healthy when we simply have no readings for her yet.
+    if f.history_count < 2 or all(
+        v is None
+        for v in (
+            f.milk_yield,
+            f.milk_conductivity,
+            f.milk_temperature,
+            f.body_surface_temperature,
+            f.activity,
+        )
+    ):
+        return RiskResult(
+            risk_score=0.0,
+            risk_level="Insufficient",
+            trend="Unknown",
+            contributing_factors=["Not enough sensor readings yet to estimate risk"],
+            model_version=MODEL_VERSION,
+        )
+
     score = 0.0
     factors: list[str] = []
 

@@ -1,8 +1,13 @@
 import 'package:flutter/foundation.dart';
 
 import '../models/domain.dart';
+import '../localization/app_strings.dart';
 import '../repositories/demo_farm_repository.dart';
 import '../services/api_service.dart';
+
+/// Outcome of an OTP sign-in attempt, so the UI can tell a real credential
+/// rejection apart from a barn that simply has no network right now.
+enum LoginResult { success, authFailed, offline }
 
 class FarmState extends ChangeNotifier {
   FarmState({DemoFarmRepository? repository, ApiService? apiService})
@@ -17,8 +22,10 @@ class FarmState extends ChangeNotifier {
   final List<Cow> cows = [];
   final List<FarmAlert> alerts = [];
   final List<Map<String, dynamic>> sampleData = [];
+  final List<SensorNodeStatus> sensorNodes = [];
   bool isOnline = true;
-  bool useMarathi = false;
+  AppLanguage language = AppLanguage.english;
+  bool get useMarathi => language == AppLanguage.marathi;
   bool isLoading = false;
   String? errorMessage;
   Cow? selectedCow;
@@ -44,22 +51,16 @@ class FarmState extends ChangeNotifier {
 
   static int _toRisk(String? value) {
     final normalized = (value ?? '').trim().toLowerCase();
-    if (normalized.contains('no risk') ||
-        normalized.contains('healthy') ||
-        normalized.contains('low')) {
+    if (normalized.contains('no risk') || normalized.contains('healthy')) {
       return RiskLevel.healthy.index;
     }
-    if (normalized.contains('attention') ||
-        normalized.contains('high') ||
-        normalized.contains('risk')) {
+    if (normalized.contains('high') || normalized.contains('attention')) {
       return RiskLevel.attention.index;
     }
     if (normalized.contains('monitor') || normalized.contains('medium')) {
       return RiskLevel.monitor.index;
     }
-    if (normalized.contains('healthy') || normalized.contains('low')) {
-      return RiskLevel.healthy.index;
-    }
+    if (normalized.contains('low')) return RiskLevel.healthy.index;
     return RiskLevel.healthy.index;
   }
 
@@ -91,7 +92,7 @@ class FarmState extends ChangeNotifier {
     return null;
   }
 
-  Future<void> loginAndSync(String phone, String otp) async {
+  Future<LoginResult> loginAndSync(String phone, String otp) async {
     try {
       isLoading = true;
       errorMessage = null;
@@ -106,13 +107,26 @@ class FarmState extends ChangeNotifier {
         authToken = (result['access_token'] ?? '').toString();
         if (authToken != null && authToken!.isNotEmpty) {
           hasBackendFarm = result['farm_id'] != null;
+          isOnline = true;
           await loadBackendData(token: authToken!);
-          return;
+          return LoginResult.success;
         }
       }
       errorMessage = 'Login succeeded but no token was returned.';
+      return LoginResult.authFailed;
     } on ApiException catch (error) {
+      if (error.statusCode == null) {
+        // Could not reach the barn network at all. This is NOT a rejected
+        // credential — let the farmer keep working on the on-device demo herd,
+        // exactly as the offline notice promises.
+        isOnline = false;
+        errorMessage = null;
+        return LoginResult.offline;
+      }
+      // The server was reachable and refused the request (e.g. wrong OTP).
+      isOnline = true;
       errorMessage = error.message;
+      return LoginResult.authFailed;
     } finally {
       isLoading = false;
       notifyListeners();
@@ -145,6 +159,7 @@ class FarmState extends ChangeNotifier {
             risk: RiskLevel.values[_toRisk(raw['basic_health_status'])],
             trend: 'Synced from backend',
             factors: const [],
+            riskScore: null,
             timeline: [
               'Today: Synced from backend',
               if ((raw['date_of_birth'] ?? '').toString().isNotEmpty)
@@ -196,11 +211,35 @@ class FarmState extends ChangeNotifier {
             ..addAll(nextAlerts);
         }
       }
+      await loadSensorNodes(token: resolvedToken);
     } on ApiException {
-      // Silent fallback: the demo herd remains available while the backend is not yet configured.
+      isOnline = false;
+      // Keep the demo herd available while the backend is unavailable.
     } finally {
       isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> loadSensorNodes({String? token}) async {
+    final resolvedToken = token ?? authToken;
+    if (resolvedToken == null || resolvedToken.isEmpty) return;
+    try {
+      final response = await _apiService.get('/sensors/status', token: resolvedToken);
+      if (response is! List) return;
+      sensorNodes
+        ..clear()
+        ..addAll(response.whereType<Map<String, dynamic>>().map((row) => SensorNodeStatus(
+          sensorId: (row['sensor_id'] ?? 'Unknown node').toString(),
+          cowTag: (row['cow_tag'] ?? 'Unassigned').toString(),
+          lastSeenAt: DateTime.tryParse((row['last_seen_at'] ?? '').toString()) ?? DateTime.now(),
+          readingCount: (row['reading_count'] as num?)?.toInt() ?? 0,
+          isOnline: (row['status'] ?? '').toString().toLowerCase() == 'online',
+        )));
+    } on ApiException {
+      // Device status is an enhancement; leave existing farm data usable when
+      // the node service is temporarily unavailable.
+      return;
     }
   }
 
@@ -245,30 +284,52 @@ class FarmState extends ChangeNotifier {
         return null;
       }
 
-      final first = response.first as Map<String, dynamic>;
+      final latest = response.last as Map<String, dynamic>;
       sampleData
         ..clear()
         ..addAll(response.whereType<Map<String, dynamic>>());
-      final tag = (first['cow_id'] ?? queryValue).toString();
-      final cow = Cow(
+      final tag = (latest['cow_id'] ?? queryValue).toString();
+      final loadedCow = Cow(
         name: tag,
         tag: tag,
-        breed: (first['breed'] ?? 'Unknown').toString(),
-        age: '${(first['age_years'] as num? ?? 0).toStringAsFixed(0)} years',
-        todayMilkLitres: _toDouble(first['milk_yield_liters']) ?? 0,
-        risk: _riskFromApi(first['risk_category']),
+        breed: (latest['breed'] ?? 'Unknown').toString(),
+        age: '${(latest['age_years'] as num? ?? 0).toStringAsFixed(0)} years',
+        todayMilkLitres: _toDouble(latest['milk_yield_liters']) ?? 0,
+        risk: _riskFromApi(latest['risk_category']),
         trend: 'From CSV dataset',
         factors: const [],
         timeline: [
-          'CSV sample loaded: ${first['recorded_date']} ${first['recorded_time']}',
+          'Latest CSV sample: ${latest['recorded_date']} ${latest['recorded_time']}',
           'Dataset contains ${sampleData.length} readings for this cow',
         ],
+        riskScore: ((_toDouble(latest['risk_probability']) ?? 0) * 100).round(),
       );
+      final existingCow = cowByTag(tag);
+      final cow = existingCow ?? loadedCow;
+      if (existingCow == null) {
+        cows.add(loadedCow);
+        farm = farm.copyWith(herdSize: cows.length);
+      } else {
+        // A CSV lookup is a fresh monitoring record, so let the same data
+        // power the profile and dashboard instead of leaving stale demo data.
+        existingCow.todayMilkLitres = loadedCow.todayMilkLitres;
+        existingCow.risk = loadedCow.risk;
+        existingCow.riskScore = ((_toDouble(latest['risk_probability']) ?? 0) * 100).round();
+        existingCow.trend = 'Latest CSV reading';
+        existingCow.factors = [
+          'Latest reading: ${latest['reading_session']} ${latest['recorded_date']} ${latest['recorded_time']}',
+          'Milk conductivity: ${latest['milk_conductivity_ms_cm']} mS/cm',
+        ];
+        existingCow.timeline
+          ..removeWhere((item) => item.startsWith('Latest CSV sample:') || item.startsWith('Dataset contains'))
+          ..insertAll(0, loadedCow.timeline);
+      }
       selectedCow = cow;
       notifyListeners();
       return cow;
-    } on ApiException {
+    } on ApiException catch (error) {
       sampleData.clear();
+      errorMessage = error.message;
       notifyListeners();
       return null;
     }
@@ -278,8 +339,13 @@ class FarmState extends ChangeNotifier {
     String name,
     String location,
     int herdSize,
-    String cowName,
-    String cowTag,
+    {
+      String cowName = '',
+      String cowTag = '',
+      String cowBreed = '',
+      String cowAge = '',
+      String cowHealth = 'Healthy',
+    }
   ) async {
     setupFarm(name, location, herdSize);
     if (authToken == null || authToken!.isEmpty) {
@@ -293,11 +359,18 @@ class FarmState extends ChangeNotifier {
         body: {'name': name, 'location': location.isEmpty ? null : location},
         token: authToken,
       );
-      await _apiService.post(
-        '/cows',
-        body: {'name': cowName, 'tag_id': cowTag},
-        token: authToken,
-      );
+      if (cowName.trim().isNotEmpty && cowTag.trim().isNotEmpty) {
+        await _apiService.post(
+          '/cows',
+          body: {
+            'name': cowName.trim(),
+            'tag_id': cowTag.trim(),
+            if (cowBreed.trim().isNotEmpty) 'breed': cowBreed.trim(),
+            'basic_health_status': cowHealth,
+          },
+          token: authToken,
+        );
+      }
       hasBackendFarm = true;
       await loadBackendData();
       return true;
@@ -318,6 +391,7 @@ class FarmState extends ChangeNotifier {
     risk: RiskLevel.insufficientHistory,
     trend: 'No history yet',
     factors: const [],
+    riskScore: null,
     timeline: const ['Registered in GauRakshak'],
   );
 
@@ -367,22 +441,39 @@ class FarmState extends ChangeNotifier {
 
   Future<bool> recordSessionReading(Cow cow) async {
     final session = currentSession;
-    if (cow.backendId == null ||
-        session?.backendId == null ||
-        authToken == null) {
+    if (session == null) {
       return false;
+    }
+    final reading = SensorReading(
+      milkYield: 6.5,
+      conductivity: 5.8,
+      milkTemperature: 39.1,
+      bodyTemperature: 39.6,
+      activity: 38,
+      capturedAt: DateTime.now(),
+    );
+    currentSession = MilkingSession(
+      cowTag: session.cowTag,
+      sensorId: session.sensorId,
+      startedAt: session.startedAt,
+      backendId: session.backendId,
+      reading: reading,
+    );
+
+    if (cow.backendId == null || session.backendId == null || authToken == null) {
+      return true;
     }
     try {
       await _apiService.post(
         '/sensor-readings',
         body: {
           'cow_id': cow.backendId,
-          'session_id': session!.backendId,
-          'milk_yield': 6.5,
-          'milk_conductivity': 5.8,
-          'milk_temperature': 39.1,
-          'body_surface_temperature': 39.6,
-          'activity': 38,
+          'session_id': session.backendId,
+          'milk_yield': reading.milkYield,
+          'milk_conductivity': reading.conductivity,
+          'milk_temperature': reading.milkTemperature,
+          'body_surface_temperature': reading.bodyTemperature,
+          'activity': reading.activity,
         },
         token: authToken,
       );
@@ -423,8 +514,8 @@ class FarmState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleLanguage() {
-    useMarathi = !useMarathi;
+  void setLanguage(AppLanguage nextLanguage) {
+    language = nextLanguage;
     notifyListeners();
   }
 
@@ -467,10 +558,11 @@ class FarmState extends ChangeNotifier {
                 .toList() ??
             const <String>[];
         cow.risk = risk;
+        cow.riskScore = _scoreOutOf100(response['risk_score']);
         cow.trend = (response['trend'] ?? 'Stable').toString();
         cow.factors = factors;
         latestPrediction = Prediction(
-          riskScore: (_toDouble(response['risk_score']) ?? 0).round(),
+          riskScore: _scoreOutOf100(response['risk_score']),
           risk: risk,
           trend: cow.trend,
           factors: factors,
@@ -498,33 +590,107 @@ class FarmState extends ChangeNotifier {
     }
   }
 
+  static int _scoreOutOf100(Object? value) {
+    final score = _toDouble(value) ?? 0;
+    return (score <= 1 ? score * 100 : score).round().clamp(0, 100);
+  }
+
+  /// Offline / no-backend fallback for a completed session.
+  ///
+  /// It deliberately does NOT fabricate a risk. With no connected sensor
+  /// pipeline there is nothing to compute, so we surface an explicit
+  /// "insufficient data" estimate, clearly flagged as a prototype. It never
+  /// overwrites the cow's known state or raises an alarm. (Phase 2 feeds this
+  /// from clearly-simulated, cow-tied readings.)
   void savePrototypeResult(Cow cow) {
-    cow.risk = RiskLevel.attention;
-    cow.trend = 'Increasing';
-    cow.factors = [
-      'Milk yield is lower',
-      'Conductivity is rising',
-      'Activity is lower',
-    ];
-    cow.timeline.insert(0, 'Today: High prototype risk score recorded');
-    latestPrediction = const Prediction(
-      riskScore: 78,
-      risk: RiskLevel.attention,
-      trend: 'Increasing',
-      factors: [
-        'Milk yield is lower',
-        'Conductivity is rising',
-        'Activity is lower',
-      ],
+    final reading = currentSession?.reading;
+    if (reading == null) {
+      latestPrediction = const Prediction(
+        riskScore: 0,
+        risk: RiskLevel.insufficientHistory,
+        trend: 'Unknown',
+        factors: ['Not enough connected sensor data to estimate risk'],
+        isPrototype: true,
+      );
+      notifyListeners();
+      return;
+    }
+
+    var score = 0;
+    final factors = <String>[];
+    if (reading.conductivity >= 5.5) {
+      score += 30;
+      factors.add('Milk conductivity is elevated');
+    }
+    if (reading.milkYield <= 7) {
+      score += 20;
+      factors.add('Milk yield is lower than the recent pattern');
+    }
+    if (reading.milkTemperature >= 39) {
+      score += 15;
+      factors.add('Milk temperature is elevated');
+    }
+    if (reading.bodyTemperature >= 39.5) {
+      score += 15;
+      factors.add('Surface temperature is elevated');
+    }
+    if (reading.activity <= 40) {
+      score += 20;
+      factors.add('Activity is lower than the recent pattern');
+    }
+    final risk = score >= 66
+        ? RiskLevel.attention
+        : score >= 33
+        ? RiskLevel.monitor
+        : RiskLevel.healthy;
+    final trend = score >= 33 ? 'Increasing' : 'Normal';
+    cow.risk = risk;
+    cow.riskScore = score.clamp(0, 99);
+    cow.trend = trend;
+    cow.factors = factors.isEmpty ? ['No significant changes detected'] : factors;
+    cow.timeline.insert(0, 'Today: ${risk.label} early-warning risk estimate');
+    latestPrediction = Prediction(
+      riskScore: score.clamp(0, 99),
+      risk: risk,
+      trend: trend,
+      factors: cow.factors,
       isPrototype: true,
     );
-    alerts.insert(
-      0,
-      FarmAlert(
-        cowTag: cow.tag,
-        message: 'Mastitis risk is high and increasing. Check the cow for udder inflammation and contact a veterinarian if needed.',
-      ),
-    );
+    if (risk == RiskLevel.attention &&
+        !alerts.any((alert) => alert.cowTag == cow.tag)) {
+      alerts.insert(
+        0,
+        FarmAlert(
+          cowTag: cow.tag,
+          message:
+              '${cow.name} needs attention. Check the cow for visible symptoms and contact a veterinarian if needed.',
+        ),
+      );
+    }
     notifyListeners();
+  }
+
+  /// Prefer the securely authenticated backend assistant. Returning null lets
+  /// the UI fall back to its useful offline helper when a barn is disconnected.
+  Future<String?> askGauSaathi(String message) async {
+    final token = authToken;
+    if (token == null || token.isEmpty) return null;
+    try {
+      final response = await _apiService.post(
+        '/assistant/chat',
+        token: token,
+        body: {
+          'message': message.trim(),
+          if (selectedCow?.backendId != null) 'cow_id': selectedCow!.backendId,
+        },
+      );
+      if (response is Map<String, dynamic>) {
+        final reply = response['reply']?.toString().trim() ?? '';
+        return reply.isEmpty ? null : reply;
+      }
+    } on ApiException {
+      // The local assistant is intentionally retained for offline-first use.
+    }
+    return null;
   }
 }

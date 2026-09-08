@@ -22,8 +22,9 @@ DEMO_OTP = "123456"
 
 
 def create_access_token(user_id: int) -> str:
-    expire = datetime.now(UTC) + timedelta(minutes=settings.access_token_expire_minutes)
-    payload = {"sub": str(user_id), "exp": expire}
+    issued_at = datetime.now(UTC)
+    expire = issued_at + timedelta(minutes=settings.access_token_expire_minutes)
+    payload = {"sub": str(user_id), "iat": issued_at, "exp": expire, "type": "access"}
     return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
 
@@ -39,12 +40,15 @@ def get_current_user(
     try:
         payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
         user_id = payload.get("sub")
-        if user_id is None:
+        if user_id is None or payload.get("type") != "access":
             raise cred_error
     except JWTError:
         raise cred_error
 
-    user = db.get(User, int(user_id))
+    try:
+        user = db.get(User, int(user_id))
+    except (TypeError, ValueError):
+        raise cred_error
     if user is None:
         raise cred_error
     return user

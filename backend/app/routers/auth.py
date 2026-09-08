@@ -1,5 +1,5 @@
 """Phone + OTP login. Demo OTP is fixed; swap for a real SMS provider later."""
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from ..config import settings
@@ -7,12 +7,14 @@ from ..database import get_db
 from ..models import User
 from ..schemas import LoginRequest, VerifyOtpRequest, TokenResponse
 from ..security import create_access_token, DEMO_OTP
+from ..rate_limit import login_limiter
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/login")
-def login(req: LoginRequest):
+def login(req: LoginRequest, request: Request):
+    login_limiter.check(request, req.phone)
     # In production: generate and deliver an OTP through an SMS provider.
     if not settings.demo_auth_enabled:
         raise HTTPException(status_code=503, detail="SMS OTP provider is not configured")
@@ -20,7 +22,8 @@ def login(req: LoginRequest):
 
 
 @router.post("/verify-otp", response_model=TokenResponse)
-def verify_otp(req: VerifyOtpRequest, db: Session = Depends(get_db)):
+def verify_otp(req: VerifyOtpRequest, request: Request, db: Session = Depends(get_db)):
+    login_limiter.check(request, req.phone)
     if not settings.demo_auth_enabled:
         raise HTTPException(status_code=503, detail="SMS OTP provider is not configured")
     if req.otp != DEMO_OTP:

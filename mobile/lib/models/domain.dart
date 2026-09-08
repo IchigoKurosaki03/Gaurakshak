@@ -49,9 +49,15 @@ class Cow {
     required this.factors,
     required this.timeline,
     this.backendId,
+    this.riskScore,
+    this.previousMastitis = false,
+    this.currentlyTreated = false,
   });
 
   final int? backendId;
+  int? riskScore;
+  bool previousMastitis;
+  bool currentlyTreated;
   final String name;
   final String tag;
   final String breed;
@@ -131,6 +137,22 @@ class MilkingSession {
   final String sensorId;
   final DateTime startedAt;
   final SensorReading? reading;
+}
+
+class SensorNodeStatus {
+  const SensorNodeStatus({
+    required this.sensorId,
+    required this.cowTag,
+    required this.lastSeenAt,
+    required this.readingCount,
+    required this.isOnline,
+  });
+
+  final String sensorId;
+  final String cowTag;
+  final DateTime lastSeenAt;
+  final int readingCount;
+  final bool isOnline;
 }
 
 String encodeJson(Map<String, Object?> value) => jsonEncode(value);

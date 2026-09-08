@@ -14,20 +14,24 @@ class ApiException implements Exception {
 class ApiService {
   ApiService({http.Client? client, String? baseUrl})
     : _client = client ?? http.Client(),
-      baseUrl =
-          baseUrl ??
-          const String.fromEnvironment(
-            'GAURAKSHAK_API_BASE_URL',
-            // Android emulators reach the host machine through 10.0.2.2.
-            // Physical phones must receive the LAN/HTTPS URL via --dart-define.
-            defaultValue: kIsWeb
-                ? 'http://localhost:8000'
-                : 'http://10.0.2.2:8000',
-          );
+      baseUrl = baseUrl ?? _defaultBaseUrl;
 
   final http.Client _client;
   final String baseUrl;
   static const _timeout = Duration(seconds: 12);
+
+  static String get _defaultBaseUrl {
+    const configured = String.fromEnvironment('GAURAKSHAK_API_BASE_URL');
+    if (configured.isNotEmpty) return configured;
+    // Local web previews use the IPv4 loopback explicitly. This avoids a
+    // Windows localhost -> IPv6 mismatch when Uvicorn is bound to 127.0.0.1.
+    if (kIsWeb) {
+      return 'http://127.0.0.1:8000';
+    }
+    // Android emulators reach the host machine through 10.0.2.2. Physical
+    // phones must receive their LAN/HTTPS URL through --dart-define.
+    return 'http://10.0.2.2:8000';
+  }
 
   Future<Object?> get(String path, {String? token}) =>
       _send('GET', path, token: token);
