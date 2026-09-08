@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:video_player/video_player.dart';
 
 import '../ui.dart';
@@ -68,17 +67,9 @@ class _SplashScreenState extends State<SplashScreen>
     final controller = VideoPlayerController.asset('assets/videos/splash.mp4');
     try {
       await controller.initialize();
-      // The source video contains a branded end card after the clean
-      // farmer/milking sequence. Loop before that card instead of re-encoding
-      // the asset (which breaks browser playback on some devices).
-      await controller.setLooping(false);
-      controller.addListener(() {
-        if (controller.value.isInitialized &&
-            controller.value.position >= const Duration(milliseconds: 4300)) {
-          controller.seekTo(Duration.zero);
-          controller.play();
-        }
-      });
+      // The checked-in asset is already trimmed before its old end card, so a
+      // native loop is both smoother and cheaper than a position listener.
+      await controller.setLooping(true);
       await controller.setVolume(0);
       await controller.play();
       if (!mounted) {
@@ -106,7 +97,9 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    if (kIsWeb || !_videoReady) {
+    // Prefer the actual video on every platform. The animated GIF is only a
+    // fallback for browsers/devices whose video backend cannot initialize.
+    if (!_videoReady) {
       return Scaffold(
         backgroundColor: Colors.black,
         body: Stack(
