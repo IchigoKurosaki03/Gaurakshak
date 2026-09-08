@@ -1021,7 +1021,7 @@ class _GauSaathiSheetState extends State<GauSaathiSheet> {
               children: [
                 const CircleAvatar(
                   backgroundColor: GauColors.mint,
-                  child: Icon(Icons.auto_awesome, color: GauColors.forest),
+                  child: Icon(Icons.chat_bubble_outline, color: GauColors.forest),
                 ),
                 const SizedBox(width: 10),
                 const Expanded(

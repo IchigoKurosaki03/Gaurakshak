@@ -150,9 +150,10 @@ class _OtpInputState extends State<OtpInput> {
       const gap = 8.0;
       final boxWidth = ((constraints.maxWidth - gap * (widget.length - 1)) / widget.length).clamp(42.0, 86.0);
       return Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          for (var i = 0; i < widget.length; i++)
+          for (var i = 0; i < widget.length; i++) ...[
+            if (i > 0) const SizedBox(width: gap),
             SizedBox(
               width: boxWidth,
               child: _OtpBox(
@@ -169,6 +170,7 @@ class _OtpInputState extends State<OtpInput> {
                 },
               ),
             ),
+          ],
         ],
       );
     });

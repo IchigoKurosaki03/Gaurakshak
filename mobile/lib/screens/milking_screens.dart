@@ -378,7 +378,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.auto_awesome, color: GauColors.forest, size: 54),
+                const Icon(Icons.chat_bubble_outline, color: GauColors.forest, size: 54),
                 const SizedBox(height: 18),
                 const Text('GauRakshak is checking the pattern', textAlign: TextAlign.center, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 8),

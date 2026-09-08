@@ -67,8 +67,9 @@ class _RootGateState extends State<RootGate> {
         state: widget.state,
         onAuthenticated: () => setState(() {
           _authed = true;
-          // Returning user with a backend farm skips the setup step.
-          _setupDone = widget.state.hasBackendFarm;
+          // Keep the farm profile step visible so today's farm details can be
+          // confirmed or updated after signing in.
+          _setupDone = false;
         }),
       );
     } else if (!_setupDone) {
