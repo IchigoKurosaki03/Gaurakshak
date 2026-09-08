@@ -39,7 +39,7 @@ class DashboardScreen extends StatelessWidget {
               Container(
                 decoration: BoxDecoration(border: Border.all(color: GauColors.forest), borderRadius: BorderRadius.circular(20), color: GauColors.white),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                child: const Row(children: [Icon(Icons.cloud_done_outlined, color: GauColors.forest, size: 18), SizedBox(width: 4), Text('Synced', style: TextStyle(color: GauColors.forest, fontWeight: FontWeight.bold))]),
+                child: Row(children: [Icon(state.isOnline && state.authToken != null ? Icons.cloud_done_outlined : Icons.cloud_off_outlined, color: GauColors.forest, size: 18), const SizedBox(width: 4), Text(state.dataModeLabel, style: const TextStyle(color: GauColors.forest, fontWeight: FontWeight.bold))]),
               )
             ]
           ), 

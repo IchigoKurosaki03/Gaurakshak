@@ -34,6 +34,14 @@ class FarmState extends ChangeNotifier {
   String? authToken;
   bool hasBackendFarm = false;
 
+  /// Human-readable source indicator used by the dashboard. This keeps demo,
+  /// offline, and authenticated backend data visually distinct during demos.
+  String get dataModeLabel {
+    if (authToken != null && authToken!.isNotEmpty && isOnline) return 'Live sync';
+    if (!isOnline) return 'Offline data';
+    return 'Demo data';
+  }
+
   void _seedDemo() {
     farm = _repository.initialFarm();
     cows
