@@ -158,6 +158,11 @@ class SensorReadingCreate(BaseModel):
     def require_cow_reference(self):
         if self.cow_id is None and not self.tag_id:
             raise ValueError("Provide cow_id or tag_id")
+        if all(getattr(self, name) is None for name in (
+            "milk_yield", "milk_conductivity", "milk_temperature",
+            "body_surface_temperature", "activity",
+        )):
+            raise ValueError("Provide at least one sensor measurement")
         limits = {
             "milk_yield": (0, 100),
             "milk_conductivity": (0, 20),

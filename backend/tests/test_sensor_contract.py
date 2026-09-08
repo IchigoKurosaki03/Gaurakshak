@@ -21,6 +21,10 @@ class SensorReadingContractTests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             SensorReadingCreate(tag_id="COW-024", milk_temperature=74)
 
+    def test_empty_sensor_payload_is_rejected(self) -> None:
+        with self.assertRaises(ValidationError):
+            SensorReadingCreate(tag_id="COW-024")
+
 
 if __name__ == "__main__":
     unittest.main()
