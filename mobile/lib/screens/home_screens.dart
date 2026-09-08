@@ -442,8 +442,9 @@ class _CowHealthLookupScreenState extends State<CowHealthLookupScreen> {
   Cow? _cow;
   bool _searched = false;
   bool _loading = false;
+  int _requestId = 0;
   @override void dispose() { _cowId.dispose(); super.dispose(); }
-  Future<void> _search() async { setState(() => _loading = true); final cow = await widget.state.findCowFromCsv(_cowId.text); if (mounted) setState(() { _cow = cow; _searched = true; _loading = false; }); }
+  Future<void> _search() async { final requestId = ++_requestId; setState(() => _loading = true); final cow = await widget.state.findCowFromCsv(_cowId.text); if (mounted && requestId == _requestId) setState(() { _cow = cow; _searched = true; _loading = false; }); }
   @override Widget build(BuildContext context) => _CsvLookupScaffold(
     title: tr(widget.state.language, 'cowHealth'), subtitle: tr(widget.state.language, 'healthSubtitle'), controller: _cowId, buttonLabel: tr(widget.state.language, 'checkHealth'), onSearch: _search, searched: _searched, loading: _loading, cow: _cow, row: widget.state.sampleData.isEmpty ? const {} : widget.state.sampleData.last, language: widget.state.language,
     emptyMessage: 'No health record found. Try COW_0002 or COW-02.', extra: _HealthCsvCharts(rows: widget.state.sampleData), sections: [
@@ -478,8 +479,9 @@ class _MilkLookupScreenState extends State<MilkLookupScreen> {
   Cow? _cow;
   bool _searched = false;
   bool _loading = false;
+  int _requestId = 0;
   @override void dispose() { _cowId.dispose(); super.dispose(); }
-  Future<void> _search() async { setState(() => _loading = true); final cow = await widget.state.findCowFromCsv(_cowId.text); if (mounted) setState(() { _cow = cow; _searched = true; _loading = false; }); }
+  Future<void> _search() async { final requestId = ++_requestId; setState(() => _loading = true); final cow = await widget.state.findCowFromCsv(_cowId.text); if (mounted && requestId == _requestId) setState(() { _cow = cow; _searched = true; _loading = false; }); }
   @override Widget build(BuildContext context) => _CsvLookupScaffold(
     title: tr(widget.state.language, 'milkMonitoring'), subtitle: tr(widget.state.language, 'milkSubtitle'), controller: _cowId, buttonLabel: tr(widget.state.language, 'checkMilk'), onSearch: _search, searched: _searched, loading: _loading, cow: _cow, row: widget.state.sampleData.isEmpty ? const {} : widget.state.sampleData.last, language: widget.state.language,
     emptyMessage: 'No milk record found. Try COW_0002 or COW-02.', extra: _MilkCsvCharts(rows: widget.state.sampleData), sections: [

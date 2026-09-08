@@ -33,6 +33,7 @@ class FarmState extends ChangeNotifier {
   Prediction? latestPrediction;
   String? authToken;
   bool hasBackendFarm = false;
+  int _sampleRequestId = 0;
 
   /// Human-readable source indicator used by the dashboard. This keeps demo,
   /// offline, and authenticated backend data visually distinct during demos.
@@ -278,6 +279,7 @@ class FarmState extends ChangeNotifier {
   Future<Cow?> findCowFromCsv(String cowId) async {
     final queryValue = cowId.trim();
     if (queryValue.isEmpty) return null;
+    final requestId = ++_sampleRequestId;
 
     try {
       final response = await _apiService.get(
@@ -287,12 +289,14 @@ class FarmState extends ChangeNotifier {
       if (response is! List ||
           response.isEmpty ||
           response.first is! Map<String, dynamic>) {
+        if (requestId != _sampleRequestId) return null;
         sampleData.clear();
         notifyListeners();
         return null;
       }
 
       final latest = response.last as Map<String, dynamic>;
+      if (requestId != _sampleRequestId) return null;
       sampleData
         ..clear()
         ..addAll(response.whereType<Map<String, dynamic>>());
@@ -336,6 +340,7 @@ class FarmState extends ChangeNotifier {
       notifyListeners();
       return cow;
     } on ApiException catch (error) {
+      if (requestId != _sampleRequestId) return null;
       sampleData.clear();
       errorMessage = error.message;
       notifyListeners();
