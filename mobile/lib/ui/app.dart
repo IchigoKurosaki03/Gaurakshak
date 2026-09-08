@@ -46,9 +46,10 @@ class RootGate extends StatefulWidget {
 }
 
 class _RootGateState extends State<RootGate> {
-  // Go straight to sign-in. The optional splash asset remains available for
-  // branded builds, but the production flow should open quickly.
-  bool _splashDone = true;
+  // Show the short farmer/milking intro before sign-in. The splash itself is
+  // skippable and falls back to the bundled GIF when video playback is not
+  // available (notably Flutter web autoplay restrictions).
+  bool _splashDone = false;
   bool _authed = false;
   bool _setupDone = false;
 

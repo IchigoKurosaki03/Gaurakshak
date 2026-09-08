@@ -7,10 +7,11 @@ import 'package:mobile/state/farm_state.dart';
 import 'package:mobile/ui/app.dart';
 
 void main() {
-  testWidgets('opens directly into the sign-in screen', (tester) async {
+  testWidgets('opens with the skippable farmer intro splash', (tester) async {
     await tester.pumpWidget(const GauRakshakApp());
     await tester.pump();
-    expect(find.text('Welcome back'), findsOneWidget);
+    expect(find.text('Enter Farm Assistant'), findsOneWidget);
+    expect(find.text('Skip'), findsOneWidget);
   });
 
   test('matches CSV-style cow IDs regardless of case or punctuation', () {
