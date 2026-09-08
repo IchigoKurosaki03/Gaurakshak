@@ -1,5 +1,8 @@
 import 'dart:async';
 
+// REFERENCE-ONLY: this earlier Stitch prototype is intentionally not imported
+// by lib/main.dart. The production entry point is ui/app.dart. Keep this file
+// available for design comparison until the next cleanup pass removes it.
 import 'package:flutter/material.dart';
 
 import '../models/domain.dart';
